@@ -45,20 +45,27 @@ if "page" not in st.session_state:
     st.session_state.page = "home"
 if "data" not in st.session_state:
     st.session_state.data = {}
+if "saved" not in st.session_state:
+    st.session_state.saved = False
 
 # ===================================================
-# SAVE
+# SAVE FUNCTION
 # ===================================================
 def save_data(data):
     os.makedirs("data", exist_ok=True)
 
-    df_new = pd.DataFrame([data])
+    new_df = pd.DataFrame([data])
 
-    if os.path.exists(CSV_PATH):
-        df_old = pd.read_csv(CSV_PATH)
-        df = pd.concat([df_old, df_new], ignore_index=True)
-    else:
-        df = df_new
+    try:
+        if os.path.exists(CSV_PATH):
+            old_df = pd.read_csv(CSV_PATH)
+            df = pd.concat([old_df, new_df], ignore_index=True)
+        else:
+            df = new_df
+    except:
+        if os.path.exists(CSV_PATH):
+            os.rename(CSV_PATH, CSV_PATH.replace(".csv", "_backup.csv"))
+        df = new_df
 
     df.to_csv(CSV_PATH, index=False)
 
@@ -67,10 +74,12 @@ def save_data(data):
 # ===================================================
 if st.session_state.page == "home":
 
-    col_logo, col_title = st.columns([1,6])
+    col_logo, col_title = st.columns([1, 6])
+
     with col_logo:
         if os.path.exists("logo.png"):
             st.image("logo.png", width=80)
+
     with col_title:
         st.markdown("## QA Physical Parameter Logbook")
 
@@ -95,42 +104,41 @@ if st.session_state.page == "home":
             st.session_state.page = "history"
 
 # ===================================================
-# PAGE 2: ENTRY PART 1
+# PAGE 2: ENTRY
 # ===================================================
 elif st.session_state.page == "entry":
 
     st.header("Logbook Entry")
 
-    data = st.session_state.data
+    d = st.session_state.data
 
-    data["Date"] = st.date_input("Date")
-    data["Batch"] = st.text_input("Batch No")
-    data["Design"] = st.text_input("Design Name")
-    data["Shade"] = st.text_input("Shade No")
-    data["Prod Boxes"] = st.number_input("Production Boxes")
-    data["Checked Boxes"] = st.number_input("Boxes Checked")
-    data["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
-    data["Size"] = st.text_input("Tile Size")
+    d["Date"] = st.date_input("Date")
+    d["Batch"] = st.text_input("Batch No")
+    d["Design"] = st.text_input("Design Name")
+    d["Shade"] = st.text_input("Shade No")
+    d["Production Boxes"] = st.number_input("Production Boxes")
+    d["Checked Boxes"] = st.number_input("Boxes Checked")
+    d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
+    d["Size"] = st.text_input("Tile Size")
 
     # ================= TABLE =================
     st.subheader("Measurement Table")
 
     table = st.data_editor(
         pd.DataFrame({
-            "Size(mm)": [0,0,0,0,0],
-            "Diag Min": [0,0,0,0,0],
-            "Diag Max": [0,0,0,0,0],
-            "Gloss": ["","","","",""]
+            "Size(mm)": [0,0,0],
+            "Diag Min": [0,0,0],
+            "Diag Max": [0,0,0],
+            "Gloss": ["","",""]
         }),
         num_rows="dynamic"
     )
 
-    # Auto calc
-    table["Diag Var"] = table["Diag Max"] - table["Diag Min"]
+    if not table.empty:
+        table["Diag Var"] = table["Diag Max"] - table["Diag Min"]
 
-    st.dataframe(table)
+        st.dataframe(table)
 
-    if len(table)>0:
         st.write("Min Size:", table["Size(mm)"].min())
         st.write("Max Size:", table["Size(mm)"].max())
 
@@ -140,30 +148,23 @@ elif st.session_state.page == "entry":
         st.write("Diagonal Variation:",
                  table["Diag Max"].max() - table["Diag Min"].min())
 
-    # ===================================================
-    # PLANARITY GRID (SIMPLIFIED)
-    # ===================================================
+    # ================= PLANARITY =================
     st.subheader("Planarity Grid")
 
-   
-cols = st.columns(4)
+    cols = st.columns(4)
 
-for i in range(4):
-    with cols[i]:
-        st.markdown(
-            f'<div class="box">Grid {i+1}</div>',
-            unsafe_allow_html=True
-        )
-        st.number_input(f"P{i}_1", key=f"p{i}_1")
-        st.number_input(f"P{i}_2", key=f"p{i}_2")
+    for i in range(4):
+        with cols[i]:
+            st.markdown(f'<div class="box">Grid {i+1}</div>', unsafe_allow_html=True)
+            st.number_input("Point 1", key=f"p{i}_1")
+            st.number_input("Point 2", key=f"p{i}_2")
 
+    d["SS Min"] = st.number_input("S/S Min")
+    d["SS Max"] = st.number_input("S/S Max")
+    d["CC Min"] = st.number_input("C/C Min")
+    d["CC Max"] = st.number_input("C/C Max")
 
-    data["SS Min"] = st.number_input("S/S Min")
-    data["SS Max"] = st.number_input("S/S Max")
-    data["CC Min"] = st.number_input("C/C Min")
-    data["CC Max"] = st.number_input("C/C Max")
-
-    data["Result"] = st.selectbox(
+    d["Result"] = st.selectbox(
         "Final Result",
         ["Accepted","Rejected","Accepted under deviation"]
     )
@@ -172,7 +173,7 @@ for i in range(4):
         st.session_state.page = "qa"
 
 # ===================================================
-# PAGE 3: QA PARAMETERS
+# PAGE 3: QA PARAMETERS ✅ FIXED
 # ===================================================
 elif st.session_state.page == "qa":
 
@@ -181,24 +182,46 @@ elif st.session_state.page == "qa":
     d = st.session_state.data
 
     d["Randomness"] = st.selectbox(
-        "Randomness", ["Standard","Uniform","Slightly","Moderately","Distinctly"]
+        "Randomness",
+        ["Standard","Uniform","Slightly","Moderately","Distinctly"]
     )
-    d["Time Calibration"] = st.text_input("Time Calibration")
-    d["Verify Time"] = st.selectbox("Verification", ["OK","NOT OK"])
-    d["Marker"] = st.selectbox("Marker Test", ["Normal Water","Hot Water"])
-    d["Cleaning"] = st.text_input("Cleaning Agent")
-    d["Chamfer"] = st.selectbox("Chamfering", ["OK","NOT OK"])
-    d["Inspection"] = st.text_area("Visual Inspection")
-    d["Foot Mark"] = st.text_area("Foot Mark")
-    d["Bump"] = st.text_input("Bump Standard")
 
-    if st.button("SAVE"):
+    d["Time Calibration"] = st.text_input("Time of Calibration")
+
+    d["Verify Time"] = st.selectbox(
+        "Verification of Time",
+        ["OK","NOT OK"]
+    )
+
+    d["Marker Test"] = st.selectbox(
+        "Marker Test",
+        ["Normal Water","Hot Water"]
+    )
+
+    d["Cleaning Agent"] = st.text_input("Cleaning Agent")
+
+    d["Chamfering"] = st.selectbox("Chamfering", ["OK","NOT OK"])
+
+    d["Visual Inspection"] = st.text_area("Visual Inspection")
+
+    d["Foot Mark"] = st.text_area("Foot Mark")
+
+    d["Bump Standard"] = st.text_input("Bump Standard")
+
+    if st.button("Save"):
         save_data(d)
+        st.session_state.saved = True
+
+    if st.session_state.saved:
         st.success("Saved successfully ✅")
-        st.session_state.page = "home"
+
+        if st.button("Go to Dashboard"):
+            st.session_state.page = "home"
+            st.session_state.saved = False
+            st.session_state.data = {}
 
 # ===================================================
-# PAGE: HISTORY
+# PAGE 4: HISTORY
 # ===================================================
 elif st.session_state.page == "history":
 
@@ -208,7 +231,7 @@ elif st.session_state.page == "history":
         df = pd.read_csv(CSV_PATH)
         st.dataframe(df)
     else:
-        st.warning("No records yet")
+        st.warning("No records found")
 
-    if st.button("⬅ Back"):
+    if st.button("Back"):
         st.session_state.page = "home"
