@@ -10,7 +10,7 @@ st.set_page_config("QA Physical Logbook", layout="wide")
 CSV_PATH = "data/qa_logbook.csv"
 
 # ===================================================
-# USERS
+# USERS (LOGIN)
 # ===================================================
 USERS = {
     "qa_sup": "QA_SUP",
@@ -62,7 +62,7 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # ===================================================
-# LOGIN
+# LOGIN PAGE
 # ===================================================
 if st.session_state.user is None:
 
@@ -84,10 +84,9 @@ if st.session_state.user is None:
     st.stop()
 
 # ===================================================
-# SAVE FUNCTION
+# SAVE FUNCTION (WITH APPROVAL)
 # ===================================================
 def save_data(data):
-
     os.makedirs("data", exist_ok=True)
 
     data["QA_HEAD"] = "No"
@@ -97,61 +96,61 @@ def save_data(data):
 
     new_df = pd.DataFrame([data])
 
-    if os.path.exists(CSV_PATH):
-        old_df = pd.read_csv(CSV_PATH)
-        df = pd.concat([old_df, new_df], ignore_index=True)
-    else:
+    try:
+        if os.path.exists(CSV_PATH):
+            old_df = pd.read_csv(CSV_PATH)
+            df = pd.concat([old_df, new_df], ignore_index=True)
+        else:
+            df = new_df
+    except:
+        if os.path.exists(CSV_PATH):
+            os.rename(CSV_PATH, CSV_PATH.replace(".csv", "_backup.csv"))
         df = new_df
 
     df.to_csv(CSV_PATH, index=False)
 
 # ===================================================
-# DASHBOARD
+# PAGE 1: DASHBOARD
 # ===================================================
 if st.session_state.page == "home":
 
     role = st.session_state.user
 
     col_logo, col_title = st.columns([1, 6])
-
     with col_logo:
         if os.path.exists("logo.png"):
             st.image("logo.png", width=80)
-
     with col_title:
         st.markdown("## QA Physical Parameter Logbook")
 
     st.divider()
 
-    if role == "QA_SUP":
-        c1, c2, c3 = st.columns(3)
-    else:
-        c1, c2, c3, c4 = st.columns(4)
+    cols = st.columns(4 if role != "QA_SUP" else 3)
 
-    with c1:
+    with cols[0]:
         st.markdown('<div class="card">📝<br><h3>New Logbook</h3></div>', unsafe_allow_html=True)
         if st.button("Open", key="new"):
             st.session_state.page = "entry"
 
-    with c2:
+    with cols[1]:
         st.markdown('<div class="card">📥<br><h3>Download</h3></div>', unsafe_allow_html=True)
         if os.path.exists(CSV_PATH):
             with open(CSV_PATH,"rb") as f:
                 st.download_button("Download CSV", f, "qa_logbook.csv")
 
-    with c3:
+    with cols[2]:
         st.markdown('<div class="card">📜<br><h3>Previous Records</h3></div>', unsafe_allow_html=True)
         if st.button("View Records"):
             st.session_state.page = "history"
 
     if role != "QA_SUP":
-        with c4:
+        with cols[3]:
             st.markdown('<div class="card">✅<br><h3>Approval Records</h3></div>', unsafe_allow_html=True)
             if st.button("Open Approvals"):
                 st.session_state.page = "approval"
 
 # ===================================================
-# ENTRY PAGE
+# PAGE 2: ENTRY
 # ===================================================
 elif st.session_state.page == "entry":
 
@@ -166,74 +165,56 @@ elif st.session_state.page == "entry":
     d["Production Boxes"] = st.number_input("Production Boxes")
     d["Checked Boxes"] = st.number_input("Boxes Checked")
     d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
-    d["Size"] = st.text_input("Tile Size")
 
-    # ===================================================
-    # ✅ UPDATED MEASUREMENT TABLE
-    # ===================================================
+    # ✅ SIZE DROPDOWN (NEW)
+    sizes = ["600x600","600x1200","1200x1800","800x1600","600x800"]
+    d["Size"] = st.selectbox("Tile Size", sizes)
+
+    # ================= TABLE =================
     st.subheader("Measurement Table")
 
     table = st.data_editor(
         pd.DataFrame({
-            "Size(mm)": ["", "", ""],
-            "Diag Min": [0.0, 0.0, 0.0],
-            "Diag Max": [0.0, 0.0, 0.0],
+            "Size": ["600x600","600x1200","600x600"],
+            "Diag Min": [0,0,0],
+            "Diag Max": [0,0,0],
             "Gloss": ["","",""]
         }),
+        column_config={
+            "Size": st.column_config.SelectboxColumn(
+                "Size", options=sizes
+            )
+        },
         num_rows="dynamic"
     )
 
-    # ---- SIZE PARSER ----
-    def parse_size(x):
+    # ✅ SIZE → AREA FUNCTION
+    def size_to_area(size):
         try:
-            x = str(x).lower().replace("x","*")
-            a, b = x.split("*")
-            return float(a)*float(b)
+            w, h = map(int, size.split("x"))
+            return w*h
         except:
-            return None
+            return 0
 
     if not table.empty:
-
         table["Diag Var"] = table["Diag Max"] - table["Diag Min"]
+        table["Area"] = table["Size"].apply(size_to_area)
+
         st.dataframe(table)
 
-        # SIZE CALC
-        sizes = table["Size(mm)"].apply(parse_size).dropna()
+        min_row = table.loc[table["Area"].idxmin()]
+        max_row = table.loc[table["Area"].idxmax()]
 
-        if not sizes.empty:
-            st.write("✅ Min Size :", sizes.min())
-            st.write("✅ Max Size :", sizes.max())
-        else:
-            st.warning("Enter Size like 600*1200")
+        st.write("✅ Min Size :", min_row["Size"])
+        st.write("✅ Max Size :", max_row["Size"])
 
-        # DIAGONAL CALC
-        min_diag = table["Diag Min"].min()
-        max_diag = table["Diag Max"].max()
+        st.write("Min Diagonal:", table["Diag Min"].min())
+        st.write("Max Diagonal:", table["Diag Max"].max())
 
-        st.write("✅ Min Diagonal:", min_diag)
-        st.write("✅ Max Diagonal:", max_diag)
-        st.write("✅ Diagonal Variation:", max_diag - min_diag)
+        st.write("Diagonal Variation:",
+                 table["Diag Max"].max() - table["Diag Min"].min())
 
-    # ===================================================
-    # ✅ STANDARD PLANARITY (ADDED BACK)
-    # ===================================================
-    st.subheader("Standard Planarity")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        cc_neg = st.number_input("C/C -ve value")
-    with col2:
-        cc_pos = st.number_input("C/C +ve value")
-
-    col3, col4 = st.columns(2)
-    with col3:
-        ss_neg = st.number_input("S/S -ve value")
-    with col4:
-        ss_pos = st.number_input("S/S +ve value")
-
-    # ===================================================
-    # PLANARITY GRID (UNCHANGED)
-    # ===================================================
+    # ================= PLANARITY =================
     st.subheader("Planarity Grid")
 
     cols = st.columns(4)
@@ -257,7 +238,7 @@ elif st.session_state.page == "entry":
         st.session_state.page = "qa"
 
 # ===================================================
-# QA PAGE
+# PAGE 3: QA PARAMETERS
 # ===================================================
 elif st.session_state.page == "qa":
 
@@ -281,10 +262,18 @@ elif st.session_state.page == "qa":
 
     if st.button("Save"):
         save_data(d)
-        st.success("Saved ✅")
+        st.session_state.saved = True
+
+    if st.session_state.saved:
+        st.success("Saved successfully ✅")
+
+        if st.button("Go to Dashboard"):
+            st.session_state.page = "home"
+            st.session_state.saved = False
+            st.session_state.data = {}
 
 # ===================================================
-# HISTORY
+# PAGE 4: HISTORY
 # ===================================================
 elif st.session_state.page == "history":
 
@@ -292,24 +281,22 @@ elif st.session_state.page == "history":
 
     if os.path.exists(CSV_PATH):
         df = pd.read_csv(CSV_PATH)
-        df.insert(0, "S.No", range(1, len(df)+1))
+        df.insert(0, "S.No", range(1,len(df)+1))
         st.dataframe(df)
+    else:
+        st.warning("No records found")
 
     if st.button("Back"):
         st.session_state.page = "home"
 
 # ===================================================
-# APPROVAL
+# APPROVAL PAGE
 # ===================================================
 elif st.session_state.page == "approval":
 
     st.header("Approval Records")
 
     role = st.session_state.user
-
-    if not os.path.exists(CSV_PATH):
-        st.warning("No records")
-        st.stop()
 
     df = pd.read_csv(CSV_PATH)
 
@@ -345,7 +332,6 @@ elif st.session_state.page == "approval":
             st.experimental_rerun()
 
         if c2.button("Reject", key=f"r{i}"):
-
             full_df = pd.read_csv(CSV_PATH)
             full_df.drop(i, inplace=True)
             full_df.to_csv(CSV_PATH, index=False)
