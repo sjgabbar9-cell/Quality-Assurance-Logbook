@@ -145,11 +145,18 @@ elif st.session_state.page == "entry":
     # ===================================================
     st.subheader("Planarity Grid")
 
-    cols = st.columns(4)
-    for i in range(4):
-        with colsst.markdown('<div class="box">Grid '+str(i+1)+'</div>', unsafe_allow_html=True)
-            st.number_input(f"P{i}_1", key=f"p{i}_1")
-            st.number_input(f"P{i}_2", key=f"p{i}_2")
+   
+cols = st.columns(4)
+
+for i in range(4):
+    with cols[i]:
+        st.markdown(
+            f'<div class="box">Grid {i+1}</div>',
+            unsafe_allow_html=True
+        )
+        st.number_input(f"P{i}_1", key=f"p{i}_1")
+        st.number_input(f"P{i}_2", key=f"p{i}_2")
+
 
     data["SS Min"] = st.number_input("S/S Min")
     data["SS Max"] = st.number_input("S/S Max")
