@@ -10,7 +10,7 @@ st.set_page_config("QA Physical Logbook", layout="wide")
 CSV_PATH = "data/qa_logbook.csv"
 
 # ===================================================
-# USERS (NEW ✅)
+# USERS ✅ (ADDED)
 # ===================================================
 USERS = {
     "qa_sup": "QA_SUP",
@@ -62,7 +62,7 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # ===================================================
-# LOGIN (NEW ✅)
+# LOGIN PAGE ✅ (ADDED)
 # ===================================================
 if st.session_state.user is None:
 
@@ -84,12 +84,13 @@ if st.session_state.user is None:
     st.stop()
 
 # ===================================================
-# SAVE FUNCTION (UPDATED ✅)
+# SAVE FUNCTION ✅ (MODIFIED)
 # ===================================================
 def save_data(data):
+
     os.makedirs("data", exist_ok=True)
 
-    # ✅ Add approval fields automatically
+    # ✅ ADD APPROVAL FLAGS
     data["QA_HEAD"] = "No"
     data["QC_HEAD"] = "No"
     data["SORT_HEAD"] = "No"
@@ -128,34 +129,36 @@ if st.session_state.page == "home":
 
     st.divider()
 
-    # ✅ dynamic tiles
-    cols = st.columns(4 if role != "QA_SUP" else 3)
+    if role == "QA_SUP":
+        c1, c2, c3 = st.columns(3)
+    else:
+        c1, c2, c3, c4 = st.columns(4)
 
-    with cols[0]:
+    with c1:
         st.markdown('<div class="card">📝<br><h3>New Logbook</h3></div>', unsafe_allow_html=True)
         if st.button("Open", key="new"):
             st.session_state.page = "entry"
 
-    with cols[1]:
+    with c2:
         st.markdown('<div class="card">📥<br><h3>Download</h3></div>', unsafe_allow_html=True)
         if os.path.exists(CSV_PATH):
             with open(CSV_PATH,"rb") as f:
                 st.download_button("Download CSV", f, "qa_logbook.csv")
 
-    with cols[2]:
+    with c3:
         st.markdown('<div class="card">📜<br><h3>Previous Records</h3></div>', unsafe_allow_html=True)
         if st.button("View Records"):
             st.session_state.page = "history"
 
-    # ✅ Approval tile (NEW)
+    # ✅ Approval Tile added (ONLY for heads)
     if role != "QA_SUP":
-        with cols[3]:
+        with c4:
             st.markdown('<div class="card">✅<br><h3>Approval Records</h3></div>', unsafe_allow_html=True)
             if st.button("Open Approvals"):
                 st.session_state.page = "approval"
 
 # ===================================================
-# PAGE 2: ENTRY (UNCHANGED ✅)
+# PAGE 2: ENTRY ✅ (UNCHANGED)
 # ===================================================
 elif st.session_state.page == "entry":
 
@@ -191,6 +194,7 @@ elif st.session_state.page == "entry":
     st.subheader("Planarity Grid")
 
     cols = st.columns(4)
+
     for i in range(4):
         with cols[i]:
             st.markdown(f'<div class="box">Grid {i+1}</div>', unsafe_allow_html=True)
@@ -211,7 +215,7 @@ elif st.session_state.page == "entry":
         st.session_state.page = "qa"
 
 # ===================================================
-# PAGE 3: QA PARAMETERS ✅
+# PAGE 3: QA ✅ (UNCHANGED)
 # ===================================================
 elif st.session_state.page == "qa":
 
@@ -238,7 +242,7 @@ elif st.session_state.page == "qa":
         st.success("Saved successfully ✅")
 
 # ===================================================
-# PAGE 4: HISTORY ✅ (WITH APPROVAL STATUS)
+# PAGE 4: HISTORY ✅ (UPDATED with approval fields)
 # ===================================================
 elif st.session_state.page == "history":
 
@@ -255,7 +259,7 @@ elif st.session_state.page == "history":
         st.session_state.page = "home"
 
 # ===================================================
-# PAGE 5: APPROVAL ✅
+# PAGE 5: APPROVAL ✅ (NEW)
 # ===================================================
 elif st.session_state.page == "approval":
 
@@ -269,16 +273,13 @@ elif st.session_state.page == "approval":
 
     df = pd.read_csv(CSV_PATH)
 
-    # ✅ FILTER LOGIC
+    # ✅ FILTER
     if role == "QA_HEAD":
         df = df[df["QA_HEAD"] == "No"]
-
     elif role == "QC_HEAD":
         df = df[(df["QA_HEAD"] == "Yes") & (df["QC_HEAD"] == "No")]
-
     elif role == "SORT_HEAD":
         df = df[(df["QC_HEAD"] == "Yes") & (df["SORT_HEAD"] == "No")]
-
     elif role == "GM":
         df = df[(df["SORT_HEAD"] == "Yes") & (df["GM"] == "No")]
 
