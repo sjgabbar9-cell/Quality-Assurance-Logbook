@@ -3,15 +3,15 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# -------------------------------
+# ===================================================
 # CONFIG
-# -------------------------------
-st.set_page_config(page_title="QA Logbook", layout="wide")
+# ===================================================
+st.set_page_config("QA Physical Logbook", layout="wide")
 CSV_PATH = "data/qa_logbook.csv"
 
-# -------------------------------
-# USERS
-# -------------------------------
+# ===================================================
+# USERS (NEW ✅)
+# ===================================================
 USERS = {
     "qa_sup": "QA_SUP",
     "qa_head": "QA_HEAD",
@@ -21,48 +21,50 @@ USERS = {
 }
 PASSWORD = "123"
 
-# -------------------------------
+# ===================================================
 # STYLE
-# -------------------------------
+# ===================================================
 st.markdown("""
 <style>
 .stApp { background:#FFE5D4; }
 * { color:black !important; }
+input, textarea, select { background:white !important; }
+
 .card {
-    background:white; padding:30px; border-radius:16px;
-    text-align:center; height:200px; border:2px solid #ccc;
+    background:white;
+    padding:30px;
+    border-radius:16px;
+    text-align:center;
+    height:220px;
+    border:2px solid #ccc;
+}
+
+.box {
+    border:2px solid #aaa;
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+    margin-bottom:10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------
+# ===================================================
 # SESSION
-# -------------------------------
+# ===================================================
 if "page" not in st.session_state:
-    st.session_state.page = "login"
+    st.session_state.page = "home"
+if "data" not in st.session_state:
+    st.session_state.data = {}
+if "saved" not in st.session_state:
+    st.session_state.saved = False
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# -------------------------------
-# SAVE
-# -------------------------------
-def save_data(record):
-    os.makedirs("data", exist_ok=True)
-
-    df_new = pd.DataFrame([record])
-
-    if os.path.exists(CSV_PATH):
-        df_old = pd.read_csv(CSV_PATH)
-        df = pd.concat([df_old, df_new])
-    else:
-        df = df_new
-
-    df.to_csv(CSV_PATH, index=False)
-
-# -------------------------------
-# LOGIN PAGE ✅
-# -------------------------------
-if st.session_state.page == "login":
+# ===================================================
+# LOGIN (NEW ✅)
+# ===================================================
+if st.session_state.user is None:
 
     st.title("QA Logbook Login")
 
@@ -77,93 +79,184 @@ if st.session_state.page == "login":
             st.session_state.user = USERS[uid]
             st.session_state.page = "home"
         else:
-            st.error("Invalid credentials")
+            st.error("Invalid Credentials")
 
-# -------------------------------
-# DASHBOARD ✅
-# -------------------------------
-elif st.session_state.page == "home":
+    st.stop()
+
+# ===================================================
+# SAVE FUNCTION (UPDATED ✅)
+# ===================================================
+def save_data(data):
+    os.makedirs("data", exist_ok=True)
+
+    # ✅ Add approval fields automatically
+    data["QA_HEAD"] = "No"
+    data["QC_HEAD"] = "No"
+    data["SORT_HEAD"] = "No"
+    data["GM"] = "No"
+
+    new_df = pd.DataFrame([data])
+
+    try:
+        if os.path.exists(CSV_PATH):
+            old_df = pd.read_csv(CSV_PATH)
+            df = pd.concat([old_df, new_df], ignore_index=True)
+        else:
+            df = new_df
+    except:
+        if os.path.exists(CSV_PATH):
+            os.rename(CSV_PATH, CSV_PATH.replace(".csv", "_backup.csv"))
+        df = new_df
+
+    df.to_csv(CSV_PATH, index=False)
+
+# ===================================================
+# PAGE 1: DASHBOARD ✅ (ENHANCED)
+# ===================================================
+if st.session_state.page == "home":
 
     role = st.session_state.user
 
-    st.title(f"Dashboard ({role})")
+    col_logo, col_title = st.columns([1, 6])
 
+    with col_logo:
+        if os.path.exists("logo.png"):
+            st.image("logo.png", width=80)
+
+    with col_title:
+        st.markdown("## QA Physical Parameter Logbook")
+
+    st.divider()
+
+    # ✅ dynamic tiles
     cols = st.columns(4 if role != "QA_SUP" else 3)
 
-    # Tile 1
     with cols[0]:
-        st.markdown('<div class="card">📝<br>New Logbook</div>', unsafe_allow_html=True)
-        if st.button("Open Entry"):
+        st.markdown('<div class="card">📝<br><h3>New Logbook</h3></div>', unsafe_allow_html=True)
+        if st.button("Open", key="new"):
             st.session_state.page = "entry"
 
-    # Tile 2
     with cols[1]:
-        st.markdown('<div class="card">📥<br>Download</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card">📥<br><h3>Download</h3></div>', unsafe_allow_html=True)
         if os.path.exists(CSV_PATH):
             with open(CSV_PATH,"rb") as f:
-                st.download_button("Download CSV", f, "logbook.csv")
+                st.download_button("Download CSV", f, "qa_logbook.csv")
 
-    # Tile 3
     with cols[2]:
-        st.markdown('<div class="card">📜<br>Records</div>', unsafe_allow_html=True)
-        if st.button("Open Records"):
+        st.markdown('<div class="card">📜<br><h3>Previous Records</h3></div>', unsafe_allow_html=True)
+        if st.button("View Records"):
             st.session_state.page = "history"
 
-    # Tile 4 (Approval)
+    # ✅ Approval tile (NEW)
     if role != "QA_SUP":
         with cols[3]:
-            st.markdown('<div class="card">✅<br>Approvals</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card">✅<br><h3>Approval Records</h3></div>', unsafe_allow_html=True)
             if st.button("Open Approvals"):
                 st.session_state.page = "approval"
 
-# -------------------------------
-# ENTRY PAGE ✅
-# -------------------------------
+# ===================================================
+# PAGE 2: ENTRY (UNCHANGED ✅)
+# ===================================================
 elif st.session_state.page == "entry":
 
-    st.header("New Logbook Entry")
+    st.header("Logbook Entry")
 
-    data = {}
+    d = st.session_state.data
 
-    data["Date"] = st.date_input("Date")
-    data["Batch"] = st.text_input("Batch No")
-    data["Design"] = st.text_input("Design")
-    data["Size"] = st.text_input("Size")
+    d["Date"] = st.date_input("Date")
+    d["Batch"] = st.text_input("Batch No")
+    d["Design"] = st.text_input("Design Name")
+    d["Shade"] = st.text_input("Shade No")
+    d["Production Boxes"] = st.number_input("Production Boxes")
+    d["Checked Boxes"] = st.number_input("Boxes Checked")
+    d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
+    d["Size"] = st.text_input("Tile Size")
 
-    data["Result"] = st.selectbox(
-        "Result", ["Accepted","Rejected","Accepted under Deviation"]
+    st.subheader("Measurement Table")
+
+    table = st.data_editor(
+        pd.DataFrame({
+            "Size(mm)": [0,0,0],
+            "Diag Min": [0,0,0],
+            "Diag Max": [0,0,0],
+            "Gloss": ["","",""]
+        }),
+        num_rows="dynamic"
     )
 
+    if not table.empty:
+        table["Diag Var"] = table["Diag Max"] - table["Diag Min"]
+        st.dataframe(table)
+
+    st.subheader("Planarity Grid")
+
+    cols = st.columns(4)
+    for i in range(4):
+        with cols[i]:
+            st.markdown(f'<div class="box">Grid {i+1}</div>', unsafe_allow_html=True)
+            st.number_input("Point 1", key=f"p{i}_1")
+            st.number_input("Point 2", key=f"p{i}_2")
+
+    d["SS Min"] = st.number_input("S/S Min")
+    d["SS Max"] = st.number_input("S/S Max")
+    d["CC Min"] = st.number_input("C/C Min")
+    d["CC Max"] = st.number_input("C/C Max")
+
+    d["Result"] = st.selectbox(
+        "Final Result",
+        ["Accepted","Rejected","Accepted under deviation"]
+    )
+
+    if st.button("Next"):
+        st.session_state.page = "qa"
+
+# ===================================================
+# PAGE 3: QA PARAMETERS ✅
+# ===================================================
+elif st.session_state.page == "qa":
+
+    st.header("QA Parameters")
+
+    d = st.session_state.data
+
+    d["Randomness"] = st.selectbox(
+        "Randomness",
+        ["Standard","Uniform","Slightly","Moderately","Distinctly"]
+    )
+
+    d["Time Calibration"] = st.text_input("Time of Calibration")
+    d["Verify Time"] = st.selectbox("Verification of Time", ["OK","NOT OK"])
+    d["Marker Test"] = st.selectbox("Marker Test", ["Normal Water","Hot Water"])
+    d["Cleaning Agent"] = st.text_input("Cleaning Agent")
+    d["Chamfering"] = st.selectbox("Chamfering", ["OK","NOT OK"])
+    d["Visual Inspection"] = st.text_area("Visual Inspection")
+    d["Foot Mark"] = st.text_area("Foot Mark")
+    d["Bump Standard"] = st.text_input("Bump Standard")
+
     if st.button("Save"):
-        # ✅ approval flags default
-        data["QA_HEAD"] = "No"
-        data["QC_HEAD"] = "No"
-        data["SORT_HEAD"] = "No"
-        data["GM"] = "No"
+        save_data(d)
+        st.success("Saved successfully ✅")
 
-        save_data(data)
-
-        st.success("Saved ✅")
-        st.session_state.page = "home"
-
-# -------------------------------
-# HISTORY PAGE ✅
-# -------------------------------
+# ===================================================
+# PAGE 4: HISTORY ✅ (WITH APPROVAL STATUS)
+# ===================================================
 elif st.session_state.page == "history":
 
-    st.header("All Records")
+    st.header("Previous Records")
 
     if os.path.exists(CSV_PATH):
         df = pd.read_csv(CSV_PATH)
         df.insert(0, "S.No", range(1, len(df)+1))
         st.dataframe(df)
+    else:
+        st.warning("No records found")
 
     if st.button("Back"):
         st.session_state.page = "home"
 
-# -------------------------------
-# APPROVAL PAGE ✅
-# -------------------------------
+# ===================================================
+# PAGE 5: APPROVAL ✅
+# ===================================================
 elif st.session_state.page == "approval":
 
     st.header("Approval Records")
@@ -171,12 +264,12 @@ elif st.session_state.page == "approval":
     role = st.session_state.user
 
     if not os.path.exists(CSV_PATH):
-        st.warning("No records available")
+        st.warning("No records")
         st.stop()
 
     df = pd.read_csv(CSV_PATH)
 
-    # ---------------- FILTER LOGIC ----------------
+    # ✅ FILTER LOGIC
     if role == "QA_HEAD":
         df = df[df["QA_HEAD"] == "No"]
 
@@ -189,35 +282,33 @@ elif st.session_state.page == "approval":
     elif role == "GM":
         df = df[(df["SORT_HEAD"] == "Yes") & (df["GM"] == "No")]
 
-    # ---------------- DISPLAY ----------------
     for i, row in df.iterrows():
+
         st.write(f"Batch: {row['Batch']} | Design: {row['Design']}")
 
-        col1, col2 = st.columns(2)
+        c1, c2 = st.columns(2)
 
-        # APPROVE
-        if col1.button("Approve", key=f"a{i}"):
+        if c1.button("Approve", key=f"a{i}"):
+
             full_df = pd.read_csv(CSV_PATH)
 
             if role == "QA_HEAD":
-                full_df.loc[i,"QA_HEAD"] = "Yes"
+                full_df.loc[i, "QA_HEAD"] = "Yes"
             elif role == "QC_HEAD":
-                full_df.loc[i,"QC_HEAD"] = "Yes"
+                full_df.loc[i, "QC_HEAD"] = "Yes"
             elif role == "SORT_HEAD":
-                full_df.loc[i,"SORT_HEAD"] = "Yes"
+                full_df.loc[i, "SORT_HEAD"] = "Yes"
             elif role == "GM":
-                full_df.loc[i,"GM"] = "Yes"
+                full_df.loc[i, "GM"] = "Yes"
 
             full_df.to_csv(CSV_PATH, index=False)
-            st.success("Approved ✅")
             st.experimental_rerun()
 
-        # REJECT
-        if col2.button("Reject", key=f"r{i}"):
+        if c2.button("Reject", key=f"r{i}"):
+
             full_df = pd.read_csv(CSV_PATH)
             full_df.drop(i, inplace=True)
             full_df.to_csv(CSV_PATH, index=False)
-            st.error("Rejected ❌")
             st.experimental_rerun()
 
     if st.button("Back"):
