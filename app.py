@@ -222,11 +222,13 @@ elif st.session_state.page=="history":
 # ================= VIEW (IMPORTANT FIX ✅) =================
 elif st.session_state.page=="view":
 
-   df=pd.read_csv(CSV_PATH)
-row=df.loc[st.session_state.selected_row]
+    df = pd.read_csv(CSV_PATH)
 
-st.header("Full Logbook")
+    if st.session_state.selected_row is None:
+        st.error("No record selected")
+        st.stop()
 
+    row = df.loc[st.session_state.selected_row]
 # ================= BASIC DETAILS =================
 st.subheader("Logbook Entry")
 
