@@ -128,12 +128,20 @@ elif st.session_state.page=="view":
 
     # ✅ NOW ONLY HERE — ADD MEASUREMENT TABLE
 
-    st.subheader("Measurement Table")
+  # ✅ ================= MEASUREMENT TABLE + FINAL CHECK =================
 
-    try:
+st.subheader("Measurement Table")
+
+try:
+    if pd.isna(row.get("table_data")):
+        st.warning("No measurement table available for this record")
+    else:
         table = pd.read_json(row["table_data"])
+
+        # ✅ SHOW TABLE
         st.dataframe(table, use_container_width=True)
 
+        # ✅ AUTO CALC
         def size_to_area(size):
             try:
                 w, h = size.split("x")
@@ -149,6 +157,7 @@ elif st.session_state.page=="view":
 
             st.write("Min Size:", min_row["Size"])
             st.write("Max Size:", max_row["Size"])
+
             st.write("Min Diagonal:", table["Diag Min"].min())
             st.write("Max Diagonal:", table["Diag Max"].max())
 
@@ -157,13 +166,16 @@ elif st.session_state.page=="view":
                 table["Diag Max"].max() - table["Diag Min"].min()
             )
 
-    except Exception as e:
-        st.error("Table not loading properly")
-        st.write(e)
-    d["SS Min"]=st.number_input("SS Min")
-    d["SS Max"]=st.number_input("SS Max")
-    d["CC Min"]=st.number_input("CC Min")
-    d["CC Max"]=st.number_input("CC Max")
+    # ✅ ✅ ✅ ADD THIS PART (YOUR REQUIREMENT)
+    st.write("S/S Min:", row.get("SS Min"))
+    st.write("S/S Max:", row.get("SS Max"))
+    st.write("C/C Min:", row.get("CC Min"))
+    st.write("C/C Max:", row.get("CC Max"))
+
+except Exception as e:
+    st.error("Error loading table")
+    st.write(e)
+
 
     # ✅ PLANARITY
     st.subheader("Planarity Measurement")
