@@ -186,14 +186,17 @@ elif st.session_state.page == "entry":
         st.write("✅ Min Size:", min_row["Size"])
         st.write("✅ Max Size:", max_row["Size"])
 
-    # ================= PLANARITY ✅ NEW =================
+    # ================= PLANARITY (IMAGES ADDED ✅) =================
     st.subheader("Planarity Measurement (6 Tiles)")
 
     for tile in range(1,7):
 
         st.markdown(f"### Tile {tile}")
 
-        st.markdown("#### PLC")
+        # PLC IMAGE
+        st.markdown("#### Portrait Length Curvature (PLC)")
+        st.image("assets/plc.png", use_column_width=True)
+
         for i in range(1,7):
             col1, col2 = st.columns(2)
             with col1:
@@ -201,7 +204,10 @@ elif st.session_state.page == "entry":
             with col2:
                 st.number_input(f"PLC{i} MAX", key=f"plc{tile}_{i}_max")
 
-        st.markdown("#### PWC")
+        # PWC IMAGE
+        st.markdown("#### Portrait Width Curvature (PWC)")
+        st.image("assets/pwc.png", use_column_width=True)
+
         for i in range(1,13):
             col1, col2 = st.columns(2)
             with col1:
@@ -209,7 +215,10 @@ elif st.session_state.page == "entry":
             with col2:
                 st.number_input(f"PWC{i} MAX", key=f"pwc{tile}_{i}_max")
 
-        st.markdown("#### Diagonal 1")
+        # DIAGONAL IMAGE
+        st.markdown("#### Diagonal Measurement")
+        st.image("assets/diagonal.png", use_column_width=True)
+
         for i in range(1,4):
             col1, col2 = st.columns(2)
             with col1:
@@ -217,7 +226,6 @@ elif st.session_state.page == "entry":
             with col2:
                 st.number_input(f"D1_{i} MAX", key=f"d1{tile}_{i}_max")
 
-        st.markdown("#### Diagonal 2")
         for i in range(1,4):
             col1, col2 = st.columns(2)
             with col1:
