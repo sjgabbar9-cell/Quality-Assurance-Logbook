@@ -232,18 +232,18 @@ elif st.session_state.page=="view":
 # ================= BASIC DETAILS =================
 st.subheader("Logbook Entry")
 
-st.text_input("Date", value=row.get("Date"), disabled=True)
-st.text_input("Batch", value=row.get("Batch"), disabled=True)
-st.text_input("Design", value=row.get("Design"), disabled=True)
-st.text_input("Size", value=row.get("Size"), disabled=True)
-st.text_input("Surface", value=row.get("Surface"), disabled=True)
-st.text_input("Matching", value=row.get("Matching"), disabled=True)
+ st.text_input("Date", value=row.get("Date"), disabled=True)
+ st.text_input("Batch", value=row.get("Batch"), disabled=True)
+ st.text_input("Design", value=row.get("Design"), disabled=True)
+ st.text_input("Size", value=row.get("Size"), disabled=True)
+ st.text_input("Surface", value=row.get("Surface"), disabled=True)
+ st.text_input("Matching", value=row.get("Matching"), disabled=True)
 
-st.number_input("Production Boxes", value=int(row.get("Production Boxes",0)), disabled=True)
-st.number_input("Checked Boxes", value=int(row.get("Checked Boxes",0)), disabled=True)
+ st.number_input("Production Boxes", value=int(row.get("Production Boxes",0)), disabled=True)
+ st.number_input("Checked Boxes", value=int(row.get("Checked Boxes",0)), disabled=True)
 
-st.text_input("Core", value=row.get("core"), disabled=True)
-st.number_input("Stamping and box packing", value=int(row.get("Stamping and box packing",0)), disabled=True)
+ st.text_input("Core", value=row.get("core"), disabled=True)
+ st.number_input("Stamping and box packing", value=int(row.get("Stamping and box packing",0)), disabled=True)
 
 # ================= MEASUREMENT TABLE =================
 st.subheader("Measurement Table")
