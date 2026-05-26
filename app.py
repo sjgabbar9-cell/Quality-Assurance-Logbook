@@ -260,30 +260,42 @@ elif st.session_state.page=="view":
     st.write("Matching:",row["Matching"])
 
     # ✅ TABLE + AUTO
-    st.subheader("Measurement Table")
+   st.subheader("Measurement Table")
 
-    try:
-        table=pd.read_json(row["table_data"])
-        st.dataframe(table)
+try:
+    # ✅ READ SAVED TABLE
+    table = pd.read_json(row["table_data"])
 
-        def size_to_area(size):
-            w,h=size.split("x")
-            return float(w)*float(h)
+    # ✅ SHOW TABLE PROPERLY
+    st.dataframe(table, use_container_width=True)
 
-        table["Area"]=table["Size"].apply(size_to_area)
+    # ✅ AUTO CALC
+    def size_to_area(size):
+        try:
+            w, h = size.split("x")
+            return float(w) * float(h)
+        except:
+            return 0
 
-        min_row=table.loc[table["Area"].idxmin()]
-        max_row=table.loc[table["Area"].idxmax()]
+    if not table.empty:
+        table["Area"] = table["Size"].apply(size_to_area)
 
-        st.write("Min Size:",min_row["Size"])
-        st.write("Max Size:",max_row["Size"])
+        min_row = table.loc[table["Area"].idxmin()]
+        max_row = table.loc[table["Area"].idxmax()]
 
-        st.write("Min Diagonal:",table["Diag Min"].min())
-        st.write("Max Diagonal:",table["Diag Max"].max())
-        st.write("Diagonal Variation:",table["Diag Max"].max()-table["Diag Min"].min())
+        st.write("Min Size:", min_row["Size"])
+        st.write("Max Size:", max_row["Size"])
+        st.write("Min Diagonal:", table["Diag Min"].min())
+        st.write("Max Diagonal:", table["Diag Max"].max())
 
-    except:
-        pass
+        st.write(
+            "Diagonal Variation:",
+            table["Diag Max"].max() - table["Diag Min"].min()
+        )
+
+except Exception as e:
+    st.error("Table not loading properly")
+    st.write("Error:", e)
 
     st.write("SS Min:",row.get("SS Min"))
     st.write("SS Max:",row.get("SS Max"))
@@ -292,7 +304,7 @@ elif st.session_state.page=="view":
 
     # ✅ FULL PLANARITY
     st.subheader("Planarity Measurement")
-
+    
     for tile in range(1,7):
         st.markdown(f"### Tile {tile}")
 
