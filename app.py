@@ -118,7 +118,94 @@ if st.session_state.page=="home":
             st.session_state.page="history"
 
 # ================= ENTRY =================
+elif st.session_state.page=="view":
 
+    df = pd.read_csv(CSV_PATH)
+
+    # ✅ VERY IMPORTANT
+    if st.session_state.selected_row is None:
+        st.error("No record selected")
+        st.stop()
+
+    row = df.loc[st.session_state.selected_row]
+
+    # ✅ NOW ONLY HERE — ADD MEASUREMENT TABLE
+
+  # ✅ ================= MEASUREMENT TABLE + FINAL CHECK =================
+
+st.subheader("Measurement Table")
+
+try:
+    if pd.isna(row.get("table_data")):
+        st.warning("No measurement table available for this record")
+    else:
+        table = pd.read_json(row["table_data"])
+
+        # ✅ SHOW TABLE
+        st.dataframe(table, use_container_width=True)
+
+        # ✅ AUTO CALC
+        def size_to_area(size):
+            try:
+                w, h = size.split("x")
+                return float(w) * float(h)
+            except:
+                return 0
+
+        if not table.empty:
+            table["Area"] = table["Size"].apply(size_to_area)
+
+            min_row = table.loc[table["Area"].idxmin()]
+            max_row = table.loc[table["Area"].idxmax()]
+
+            st.write("Min Size:", min_row["Size"])
+            st.write("Max Size:", max_row["Size"])
+
+            st.write("Min Diagonal:", table["Diag Min"].min())
+            st.write("Max Diagonal:", table["Diag Max"].max())
+
+            st.write(
+                "Diagonal Variation:",
+                table["Diag Max"].max() - table["Diag Min"].min()
+            )
+
+    # ✅ ✅ ✅ ADD THIS PART (YOUR REQUIREMENT)
+    st.write("S/S Min:", row.get("SS Min"))
+    st.write("S/S Max:", row.get("SS Max"))
+    st.write("C/C Min:", row.get("CC Min"))
+    st.write("C/C Max:", row.get("CC Max"))
+
+except Exception as e:
+    st.error("Error loading table")
+    st.write(e)
+
+
+    # ✅ PLANARITY
+    st.subheader("Planarity Measurement")
+
+    for tile in range(1,7):
+        st.markdown(f"### Tile {tile}")
+
+        st.image("assets/plc.png")
+        for i in range(1,7):
+            d[f"plc{tile}_{i}_min"]=st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
+            d[f"plc{tile}_{i}_max"]=st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
+
+        st.image("assets/pwc.png")
+        for i in range(1,13):
+            d[f"pwc{tile}_{i}_min"]=st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
+            d[f"pwc{tile}_{i}_max"]=st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
+
+        st.image("assets/diagonal.png")
+        for i in range(1,4):
+            d[f"d1{tile}_{i}_min"]=st.number_input(f"D1{i} Min", key=f"d1{tile}m{i}")
+            d[f"d1{tile}_{i}_max"]=st.number_input(f"D1{i} Max", key=f"d1{tile}x{i}")
+
+            d[f"d2{tile}_{i}_min"]=st.number_input(f"D2{i} Min", key=f"d2{tile}m{i}")
+            d[f"d2{tile}_{i}_max"]=st.number_input(f"D2{i} Max", key=f"d2{tile}x{i}")
+
+    if st.button("Next"):
+        st.session_state.page="qa"
 
 # ================= QA =================
 if st.session_state.page=="qa":
