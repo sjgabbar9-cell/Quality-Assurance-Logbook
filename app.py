@@ -39,17 +39,17 @@ if st.session_state.user is None:
 
     st.title("QA Logbook Login")
 
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=150)
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=150)
 
-
-    uid=st.text_input("User ID")
-    pwd=st.text_input("Password", type="password")
+    uid = st.text_input("User ID")
+    pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if uid in USERS and pwd==PASSWORD:
-            st.session_state.user=USERS[uid]
-            st.session_state.page="home"
+        if uid in USERS and pwd == PASSWORD:
+            st.session_state.user = USERS[uid]
+            st.session_state.page = "home"
+            st.rerun()   # ✅ IMPORTANT
         else:
             st.error("Invalid")
 
