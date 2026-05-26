@@ -276,4 +276,3 @@ elif st.session_state.page == "approval":
             df.loc[i,st.session_state.user]="Yes"
             df.to_csv(CSV_PATH,index=False)
             st.rerun()
-``
