@@ -232,7 +232,7 @@ elif st.session_state.page=="view":
 # ================= BASIC DETAILS =================
 st.subheader("Logbook Entry")
 
-st.text_input("Date", value=row.get("Date"), disabled=True)
+st.date_input("Date", value=row.get("Date"), disabled=True)
 st.text_input("Batch", value=row.get("Batch"), disabled=True)
 st.text_input("Design", value=row.get("Design"), disabled=True)
 st.text_input("Size", value=row.get("Size"), disabled=True)
