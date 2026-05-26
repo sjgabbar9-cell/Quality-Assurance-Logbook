@@ -99,6 +99,12 @@ elif st.session_state.page=="entry":
     d["Batch"]=st.text_input("Batch")
     d["Design"]=st.text_input("Design")
     d["Size"]=st.text_input("Size")
+    d["Surface"]=st.text_input("Surface")
+    d["Matching"]=st.text_input("Matching")
+    d["Production Boxes"] = st.number_input("Production Boxes", min_value=0)
+    d["Checked Boxes"] = st.number_input("Checked Boxes", min_value=0)
+    d["core"]=st.text_input("core")
+    d["Stamping and box packing"]=st.number_input("Stamping and box packing", min_value=0)
 
     # -------- Measurement Table --------
    # -------- Measurement Table --------
