@@ -258,7 +258,7 @@ elif st.session_state.page=="view":
     st.write("Matching:",row["Matching"])
 
     # ✅ TABLE + AUTO
-   st.subheader("Measurement Table")
+st.subheader("Measurement Table")
 
 try:
     # ✅ READ SAVED TABLE
