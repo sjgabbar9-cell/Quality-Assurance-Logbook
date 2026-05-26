@@ -236,6 +236,91 @@ elif st.session_state.page=="view":
 
     row = df.loc[st.session_state.selected_row]
 
-    st.date_input("Date", value=pd.to_datetime(row.get("Date")), disabled=True)
-    st.text_input("Batch", value=row.get("Batch"), disabled=True)
-    st.text_input("Design", value=row.get("Design"), disabled=True)
+    # ✅ ================= ENTRY PAGE (READ ONLY) =================
+    st.subheader("Logbook Entry")
+
+    st.text_input("Date", value=str(row.get("Date")), disabled=True)
+    st.text_input("Batch", value=str(row.get("Batch")), disabled=True)
+    st.text_input("Design", value=str(row.get("Design")), disabled=True)
+    st.text_input("Size", value=str(row.get("Size")), disabled=True)
+    st.text_input("Surface", value=str(row.get("Surface")), disabled=True)
+    st.text_input("Matching", value=str(row.get("Matching")), disabled=True)
+
+    st.number_input("Production Boxes", value=int(row.get("Production Boxes",0)), disabled=True)
+    st.number_input("Checked Boxes", value=int(row.get("Checked Boxes",0)), disabled=True)
+
+    st.text_input("Core", value=str(row.get("core")), disabled=True)
+    st.number_input("Stamping and box packing", value=int(row.get("Stamping and box packing",0)), disabled=True)
+
+    # ✅ ================= PLANARITY (SAME UI) =================
+    st.subheader("Planarity Measurement")
+
+    for tile in range(1,7):
+
+        st.markdown(f"### Tile {tile}")
+
+        st.image("assets/plc.png")
+
+        for i in range(1,7):
+            st.write(f"PLC{i}:",
+                row.get(f"plc{tile}_{i}_min"),
+                row.get(f"plc{tile}_{i}_max")
+            )
+
+        st.image("assets/pwc.png")
+
+        for i in range(1,13):
+            st.write(f"PWC{i}:",
+                row.get(f"pwc{tile}_{i}_min"),
+                row.get(f"pwc{tile}_{i}_max")
+            )
+
+        st.image("assets/diagonal.png")
+
+        for i in range(1,4):
+            st.write(f"D1_{i}:",
+                row.get(f"d1{tile}_{i}_min"),
+                row.get(f"d1{tile}_{i}_max")
+            )
+
+        for i in range(1,4):
+            st.write(f"D2_{i}:",
+                row.get(f"d2{tile}_{i}_min"),
+                row.get(f"d2{tile}_{i}_max")
+            )
+
+    # ✅ ================= QA PAGE =================
+    st.subheader("QA Details")
+
+    st.text_input("Randomness", value=str(row.get("Randomness")), disabled=True)
+    st.text_input("Time Calibration", value=str(row.get("Time Calibration")), disabled=True)
+    st.text_input("Verify", value=str(row.get("Verify Time")), disabled=True)
+    st.text_input("Cleaning", value=str(row.get("Cleaning")), disabled=True)
+    st.text_input("Chamfering", value=str(row.get("Chamfering")), disabled=True)
+    st.text_area("Foot", value=str(row.get("Foot")), disabled=True)
+    st.text_area("Remarks", value=str(row.get("Remarks")), disabled=True)
+
+    st.divider()
+
+    # ✅ ================= APPROVAL =================
+    role = st.session_state.user
+
+    col1, col2 = st.columns(2)
+
+    if col1.button("✅ Approve"):
+        df.loc[st.session_state.selected_row, role] = "Yes"
+        df.to_csv(CSV_PATH, index=False)
+        st.success("Approved ✅")
+        st.session_state.page = "history"
+        st.rerun()
+
+    if col2.button("❌ Reject"):
+        df = pd.read_csv(CSV_PATH)
+        df.drop(st.session_state.selected_row, inplace=True)
+        df.to_csv(CSV_PATH, index=False)
+        st.error("Rejected ❌")
+        st.session_state.page = "history"
+        st.rerun()
+
+    if st.button("⬅ Back"):
+        st.session_state.page="history"
