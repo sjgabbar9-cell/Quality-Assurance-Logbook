@@ -115,24 +115,19 @@ if st.session_state.page=="home":
             st.session_state.page="history"
 
 # ================= ENTRY =================
-elif st.session_state.page=="entry":
+elif st.session_state.page=="view":
 
-    d=st.session_state.data
+    df = pd.read_csv(CSV_PATH)
 
-    st.header("Logbook Entry")
+    # ✅ VERY IMPORTANT
+    if st.session_state.selected_row is None:
+        st.error("No record selected")
+        st.stop()
 
-    d["Date"]=st.date_input("Date")
-    d["Batch"]=st.text_input("Batch")
-    d["Design"]=st.text_input("Design")
-    d["Size"]=st.text_input("Size")
-    d["Surface"]=st.text_input("Surface")
-    d["Matching"]=st.text_input("Matching")
-    d["Production Boxes"]=st.number_input("Production Boxes")
-    d["Checked Boxes"]=st.number_input("Checked Boxes")
-    d["core"]=st.text_input("core")
-    d["Stamping and box packing"]=st.number_input("Stamping and box packing")
+    row = df.loc[st.session_state.selected_row]
 
-   # ✅ TABLE + AUTO
+    # ✅ NOW ONLY HERE — ADD MEASUREMENT TABLE
+
     st.subheader("Measurement Table")
 
     try:
@@ -156,15 +151,15 @@ elif st.session_state.page=="entry":
             st.write("Max Size:", max_row["Size"])
             st.write("Min Diagonal:", table["Diag Min"].min())
             st.write("Max Diagonal:", table["Diag Max"].max())
+
             st.write(
                 "Diagonal Variation:",
                 table["Diag Max"].max() - table["Diag Min"].min()
             )
 
     except Exception as e:
-        st.error("Table not loading")
+        st.error("Table not loading properly")
         st.write(e)
-
     d["SS Min"]=st.number_input("SS Min")
     d["SS Max"]=st.number_input("SS Max")
     d["CC Min"]=st.number_input("CC Min")
