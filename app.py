@@ -114,7 +114,7 @@ table = st.data_editor(
 )
 
 # ✅ Save table
-d["table_data"] = table.to_json()
+table = pd.read_json(row["table_data"])
 
 # ✅ Auto calculations
 def size_to_area(size):
