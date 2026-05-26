@@ -103,14 +103,45 @@ elif st.session_state.page=="entry":
     # -------- Measurement Table --------
     st.subheader("Measurement Table")
 
-    table=st.data_editor(pd.DataFrame({
-        "Size":["600x600","600x1200"],
-        "Diag Min":[0,0],
-        "Diag Max":[0,0],
-        "Gloss":["",""]
-    }), num_rows="dynamic")
+table = st.data_editor(
+    pd.DataFrame({
+        "Size": ["600x600","600x1200","600x600"],
+        "Diag Min": [0,0,0],
+        "Diag Max": [0,0,0],
+        "Gloss": ["","",""]
+    }),
+    num_rows="dynamic"
+)
 
-    d["table"]=table.to_json()
+# ✅ Save table
+d["table_data"] = table.to_json()
+
+# ✅ Auto calculations
+def size_to_area(size):
+    try:
+        w,h = size.split("x")
+        return float(w)*float(h)
+    except:
+        return 0
+
+if not table.empty:
+    table["Area"] = table["Size"].apply(size_to_area)
+
+    min_row = table.loc[table["Area"].idxmin()]
+    max_row = table.loc[table["Area"].idxmax()]
+
+    st.markdown("### ✅ Calculated Values")
+
+    st.write("Min Size:", min_row["Size"])
+    st.write("Max Size:", max_row["Size"])
+
+    st.write("Min Diagonal:", table["Diag Min"].min())
+    st.write("Max Diagonal:", table["Diag Max"].max())
+
+    st.write(
+        "Diagonal Variation:",
+        table["Diag Max"].max() - table["Diag Min"].min()
+    )
 
     # -------- Planarity --------
     for tile in range(1,7):
