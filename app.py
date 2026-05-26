@@ -146,15 +146,15 @@ elif st.session_state.page=="entry":
             table["Diag Max"].max() - table["Diag Min"].min()
         )
         
-d["SS Min"] = st.number_input("S/S Min", key="ss_min")
-d["SS Max"] = st.number_input("S/S Max", key="ss_max")
+        d["SS Min"] = st.number_input("S/S Min", key="ss_min")
+        d["SS Max"] = st.number_input("S/S Max", key="ss_max")
 
-d["CC Min"] = st.number_input("C/C Min", key="cc_min")
-d["CC Max"] = st.number_input("C/C Max", key="cc_max")
+        d["CC Min"] = st.number_input("C/C Min", key="cc_min")
+        d["CC Max"] = st.number_input("C/C Max", key="cc_max")
 
 
     # -------- PLANARITY ✅ BACK HERE --------
-st.subheader("Planarity Measurement")
+    st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
 
