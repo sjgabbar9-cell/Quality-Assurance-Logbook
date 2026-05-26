@@ -2,15 +2,11 @@ import streamlit as st
 import pandas as pd
 import os
 
-# ===================================================
-# CONFIG
-# ===================================================
+# ================= CONFIG =================
 st.set_page_config("QA Physical Logbook", layout="wide")
 CSV_PATH = "data/qa_logbook.csv"
 
-# ===================================================
-# USERS
-# ===================================================
+# ================= USERS =================
 USERS = {
     "qa_sup": "QA_SUP",
     "qa_head": "QA_HEAD",
@@ -20,208 +16,238 @@ USERS = {
 }
 PASSWORD = "123"
 
-# ===================================================
-# SESSION
-# ===================================================
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-if "data" not in st.session_state:
-    st.session_state.data = {}
-if "user" not in st.session_state:
-    st.session_state.user = None
-if "selected_row" not in st.session_state:
-    st.session_state.selected_row = None
+# ================= STYLE =================
+st.markdown("""
+<style>
+.stApp { background:#FFE5D4; }
+.card {background:white; padding:30px; border-radius:16px; text-align:center;}
+</style>
+""", unsafe_allow_html=True)
 
-# ===================================================
-# LOGIN
-# ===================================================
+# ================= SESSION =================
+if "page" not in st.session_state:
+    st.session_state.page="login"
+if "user" not in st.session_state:
+    st.session_state.user=None
+if "data" not in st.session_state:
+    st.session_state.data={}
+if "selected_row" not in st.session_state:
+    st.session_state.selected_row=None
+
+# ================= LOGIN =================
 if st.session_state.user is None:
 
     st.title("QA Logbook Login")
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=120)
 
-    uid = st.text_input("User ID")
-    pwd = st.text_input("Password", type="password")
+    uid=st.text_input("User ID")
+    pwd=st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if uid in USERS and pwd == PASSWORD:
-            st.session_state.user = USERS[uid]
-            st.session_state.page = "home"
+        if uid in USERS and pwd==PASSWORD:
+            st.session_state.user=USERS[uid]
+            st.session_state.page="home"
         else:
-            st.error("Invalid Credentials")
+            st.error("Invalid")
 
     st.stop()
 
-# ===================================================
-# SAVE FUNCTION
-# ===================================================
-def save_data(data):
+# ================= SAVE =================
+def save_data(d):
     os.makedirs("data", exist_ok=True)
 
-    data["QA_HEAD"] = "No"
-    data["QC_HEAD"] = "No"
-    data["SORT_HEAD"] = "No"
-    data["GM"] = "No"
-
-    df_new = pd.DataFrame([data])
+    df_new=pd.DataFrame([d])
 
     if os.path.exists(CSV_PATH):
-        df_old = pd.read_csv(CSV_PATH)
-        df = pd.concat([df_old, df_new], ignore_index=True)
+        df_old=pd.read_csv(CSV_PATH)
+        df=pd.concat([df_old, df_new], ignore_index=True)
     else:
-        df = df_new
+        df=df_new
 
-    df.to_csv(CSV_PATH, index=False)
+    df.to_csv(CSV_PATH,index=False)
 
-# ===================================================
-# DASHBOARD
-# ===================================================
-if st.session_state.page == "home":
+# ================= DASHBOARD =================
+if st.session_state.page=="home":
 
-    st.title("QA Logbook")
+    col1,col2,col3=st.columns(3)
 
-    if st.button("New Entry"):
-        st.session_state.page = "entry"
+    with col1:
+        st.markdown('<div class="card">📝 New Entry</div>', unsafe_allow_html=True)
+        if st.button("Open Entry"):
+            st.session_state.page="entry"
 
-    if st.button("View Records"):
-        st.session_state.page = "history"
+    with col2:
+        st.markdown('<div class="card">📜 Records</div>', unsafe_allow_html=True)
+        if st.button("View Records"):
+            st.session_state.page="history"
 
-# ===================================================
-# ENTRY (UNCHANGED BASIC)
-# ===================================================
-elif st.session_state.page == "entry":
+    with col3:
+        st.markdown('<div class="card">📥 Download</div>', unsafe_allow_html=True)
+        if os.path.exists(CSV_PATH):
+            with open(CSV_PATH,"rb") as f:
+                st.download_button("Download CSV", f, "logbook.csv")
 
-    d = st.session_state.data
+# ================= ENTRY =================
+elif st.session_state.page=="entry":
 
-    d["Date"] = st.date_input("Date")
-    d["Batch"] = st.text_input("Batch")
-    d["Design"] = st.text_input("Design")
-    d["Size"] = st.text_input("Size")
+    d=st.session_state.data
+
+    st.header("Logbook Entry")
+
+    d["Date"]=st.date_input("Date")
+    d["Batch"]=st.text_input("Batch")
+    d["Design"]=st.text_input("Design")
+    d["Size"]=st.text_input("Size")
+
+    # -------- Measurement Table --------
+    st.subheader("Measurement Table")
+
+    table=st.data_editor(pd.DataFrame({
+        "Size":["600x600","600x1200"],
+        "Diag Min":[0,0],
+        "Diag Max":[0,0],
+        "Gloss":["",""]
+    }), num_rows="dynamic")
+
+    d["table"]=table.to_json()
+
+    # -------- Planarity --------
+    for tile in range(1,7):
+        st.markdown(f"### Tile {tile}")
+        st.image("assets/plc.png")
+        for i in range(1,7):
+            d[f"plc{tile}_{i}_min"]=st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
+            d[f"plc{tile}_{i}_max"]=st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
+
+        st.image("assets/pwc.png")
+        for i in range(1,13):
+            d[f"pwc{tile}_{i}_min"]=st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
+            d[f"pwc{tile}_{i}_max"]=st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
+
+        st.image("assets/diagonal.png")
+        for i in range(1,4):
+            d[f"d1{tile}_{i}_min"]=st.number_input("D1 Min", key=f"d1{tile}m{i}")
+            d[f"d1{tile}_{i}_max"]=st.number_input("D1 Max", key=f"d1{tile}x{i}")
+
+        for i in range(1,4):
+            d[f"d2{tile}_{i}_min"]=st.number_input("D2 Min", key=f"d2{tile}m{i}")
+            d[f"d2{tile}_{i}_max"]=st.number_input("D2 Max", key=f"d2{tile}x{i}")
 
     if st.button("Next"):
-        st.session_state.page = "qa"
+        st.session_state.page="qa"
 
-# ===================================================
-# QA PAGE (FULL ✅ RESTORED)
-# ===================================================
-elif st.session_state.page == "qa":
+# ================= QA =================
+elif st.session_state.page=="qa":
 
-    d = st.session_state.data
+    d=st.session_state.data
 
-    d["Randomness"] = st.selectbox("Randomness", ["Standard","Uniform","Slightly","Moderately","Distinctly"])
-    d["Time Calibration"] = st.text_input("Time Calibration")
-    d["Verify Time"] = st.selectbox("Verification", ["OK","NOT OK"])
-    d["Marker Test"] = st.selectbox("Marker Test", ["Normal Water","Hot Water"])
-    d["Cleaning Agent"] = st.text_input("Cleaning Agent")
-    d["Chamfering"] = st.selectbox("Chamfering", ["OK","NOT OK"])
-    d["Visual Inspection"] = st.text_area("Visual Inspection")
-    d["Foot Mark"] = st.text_area("Foot Mark")
-    d["Bump Standard"] = st.text_input("Bump Standard")
-    d["Remarks"] = st.text_area("Remarks")
+    st.header("QA Page")
+
+    d["Randomness"]=st.selectbox("Randomness",
+        ["Standard","Uniform","Slightly","Moderately","Distinctly"])
+    d["Time Calibration"]=st.text_input("Calibration")
+    d["Verify Time"]=st.selectbox("Verify",["OK","NOT OK"])
+    d["Cleaning"]=st.text_input("Cleaning Agent")
+    d["Chamfering"]=st.selectbox("Chamfering",["OK","NOT OK"])
+    d["Foot"]=st.text_area("Foot Mark")
+    d["Remarks"]=st.text_area("Remarks")
 
     if st.button("Save"):
         save_data(d)
-        st.success("Saved ✅")
-        st.session_state.page = "home"
+        st.success("Saved")
+        st.session_state.page="home"
+        st.session_state.data={}
 
-# ===================================================
-# HISTORY (TABLE VIEW ✅)
-# ===================================================
-elif st.session_state.page == "history":
+# ================= HISTORY =================
+elif st.session_state.page=="history":
 
-    st.header("Records")
+    df=pd.read_csv(CSV_PATH)
 
-    if os.path.exists(CSV_PATH):
-        df = pd.read_csv(CSV_PATH)
-        df.insert(0, "S.No", range(1, len(df)+1))
+    df.insert(0,"S.No", range(1,len(df)+1))
 
-        st.dataframe(df, use_container_width=True)
+    st.dataframe(df)
 
-        selected = st.selectbox("Select S.No", df["S.No"])
+    s=st.selectbox("Select record", df["S.No"])
 
-        if st.button("Open Record"):
-            st.session_state.selected_row = selected - 1
-            st.session_state.page = "view_record"
+    if st.button("Open"):
+        st.session_state.selected_row=s-1
+        st.session_state.page="view"
 
-    if st.button("Back"):
-        st.session_state.page = "home"
+# ================= VIEW (IMPORTANT FIX ✅) =================
+elif st.session_state.page=="view":
 
-# ===================================================
-# ✅ FULL RECORD VIEW (COMPLETE ✅)
-# ===================================================
-elif st.session_state.page == "view_record":
+    df=pd.read_csv(CSV_PATH)
+    row=df.loc[st.session_state.selected_row]
 
-    df = pd.read_csv(CSV_PATH)
-    row = df.loc[st.session_state.selected_row]
+    st.header("Full Logbook")
 
-    st.header("Full Logbook Record")
+    st.write("### Basic Info")
+    st.write(row["Design"], row["Batch"], row["Size"])
 
-    # BASIC DETAILS
-    st.subheader("Basic Details")
-    st.write(f"Date: {row.get('Date')}")
-    st.write(f"Batch: {row.get('Batch')}")
-    st.write(f"Design: {row.get('Design')}")
-    st.write(f"Size: {row.get('Size')}")
+    # ✅ TABLE RESTORED
+    st.subheader("Measurement Table")
+    table=pd.read_json(row["table"])
+    st.dataframe(table)
 
-    st.divider()
+    # ✅ MIN/MAX
+    try:
+        w,h=table["Size"].str.split("x").str[0].astype(float), table["Size"].str.split("x").str[1].astype(float)
+        area=w*h
+        st.write("Min Size:", table.iloc[area.idxmin()]["Size"])
+        st.write("Max Size:", table.iloc[area.idxmax()]["Size"])
+    except:
+        pass
 
-    # PLANARITY SUMMARY
-    st.subheader("Planarity Summary")
-    st.write(f"S/S Min: {row.get('SS Min')}")
-    st.write(f"S/S Max: {row.get('SS Max')}")
-    st.write(f"C/C Min: {row.get('CC Min')}")
-    st.write(f"C/C Max: {row.get('CC Max')}")
-
-    st.divider()
-
-    # ALL 6 TILES
+    # ✅ PLANARITY FULL
     for tile in range(1,7):
 
         st.markdown(f"### Tile {tile}")
 
+        st.image("assets/plc.png")
+
         for i in range(1,7):
-            st.write(f"PLC{i}: {row.get(f'plc{tile}_{i}_min')} / {row.get(f'plc{tile}_{i}_max')}")
+            st.write(f"PLC{i}",
+                row.get(f"plc{tile}_{i}_min"),
+                row.get(f"plc{tile}_{i}_max")
+            )
+
+        st.image("assets/pwc.png")
 
         for i in range(1,13):
-            st.write(f"PWC{i}: {row.get(f'pwc{tile}_{i}_min')} / {row.get(f'pwc{tile}_{i}_max')}")
+            st.write(f"PWC{i}",
+                row.get(f"pwc{tile}_{i}_min"),
+                row.get(f"pwc{tile}_{i}_max")
+            )
+
+        st.image("assets/diagonal.png")
 
         for i in range(1,4):
-            st.write(f"D1{i}: {row.get(f'd1{tile}_{i}_min')} / {row.get(f'd1{tile}_{i}_max')}")
+            st.write(f"D1{i}",
+                row.get(f"d1{tile}_{i}_min"),
+                row.get(f"d1{tile}_{i}_max")
+            )
 
         for i in range(1,4):
-            st.write(f"D2{i}: {row.get(f'd2{tile}_{i}_min')} / {row.get(f'd2{tile}_{i}_max')}")
+            st.write(f"D2{i}",
+                row.get(f"d2{tile}_{i}_min"),
+                row.get(f"d2{tile}_{i}_max")
+            )
 
     st.divider()
 
-    # QA DETAILS (FULL ✅)
-    st.subheader("QA Parameters")
+    st.write("QA Parameters")
+    st.write(row)
 
-    st.write(f"Randomness: {row.get('Randomness')}")
-    st.write(f"Calibration Time: {row.get('Time Calibration')}")
-    st.write(f"Verification: {row.get('Verify Time')}")
-    st.write(f"Marker Test: {row.get('Marker Test')}")
-    st.write(f"Cleaning Agent: {row.get('Cleaning Agent')}")
-    st.write(f"Chamfering: {row.get('Chamfering')}")
-    st.write(f"Visual Inspection: {row.get('Visual Inspection')}")
-    st.write(f"Foot Mark: {row.get('Foot Mark')}")
-    st.write(f"Bump Standard: {row.get('Bump Standard')}")
-    st.write(f"Remarks: {row.get('Remarks')}")
+    # ✅ APPROVAL AT END
+    if st.button("Approve"):
+        df.loc[st.session_state.selected_row, st.session_state.user]="Yes"
+        df.to_csv(CSV_PATH,index=False)
 
-    st.divider()
-
-    # APPROVAL
-    role = st.session_state.user
-
-    col1, col2 = st.columns(2)
-
-    if col1.button("Approve"):
-        df.loc[st.session_state.selected_row, role] = "Yes"
-        df.to_csv(CSV_PATH, index=False)
-        st.success("Approved ✅")
-
-    if col2.button("Reject"):
-        df.drop(st.session_state.selected_row, inplace=True)
-        df.to_csv(CSV_PATH, index=False)
-        st.error("Rejected ❌")
+    if st.button("Reject"):
+        df.drop(st.session_state.selected_row,inplace=True)
+        df.to_csv(CSV_PATH,index=False)
 
     if st.button("Back"):
-        st.session_state.page = "history"
+        st.session_state.page="history"
+``
