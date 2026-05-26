@@ -154,7 +154,7 @@ d["CC Max"] = st.number_input("C/C Max", key="cc_max")
 
 
     # -------- PLANARITY ✅ BACK HERE --------
-  st.subheader("Planarity Measurement")
+st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
 
