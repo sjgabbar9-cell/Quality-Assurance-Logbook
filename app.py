@@ -4,7 +4,7 @@ import os
 
 # ================= CONFIG =================
 st.set_page_config("QA Physical Logbook", layout="wide")
-CSV_PATH = "data/qa_logbook.csv"
+CSV_PATH = "data/QA_Logbook_Master_Template(Sheet1).csv"
 
 # ================= USERS =================
 USERS = {
