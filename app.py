@@ -249,6 +249,7 @@ elif st.session_state.page=="history":
         st.session_state.page="view"
 
 # ================= VIEW =================
+# ================= VIEW =================
 elif st.session_state.page=="view":
 
     df = pd.read_csv(CSV_PATH)
@@ -259,49 +260,63 @@ elif st.session_state.page=="view":
 
     row = df.loc[st.session_state.selected_row]
 
-    # ✅ NOW ADD THIS (ONLY HERE)
+    # ✅ BASIC DETAILS
+    st.header("Logbook Entry")
 
+    st.write("Date:",row["Date"])
+    st.write("Batch:",row["Batch"])
+    st.write("Design:",row["Design"])
+    st.write("Size:",row["Size"])
+    st.write("Surface:",row["Surface"])
+    st.write("Matching:",row["Matching"])
+
+    # ✅ ================= MEASUREMENT TABLE =================
     st.subheader("Measurement Table")
 
     try:
-        table = pd.read_json(row["table_data"])
-        st.dataframe(table, use_container_width=True)
+        if pd.isna(row.get("table_data")):
+            st.warning("No measurement table available for this record")
+        else:
+            table = pd.read_json(row["table_data"])
 
-        def size_to_area(size):
-            try:
-                w, h = size.split("x")
-                return float(w) * float(h)
-            except:
-                return 0
+            st.dataframe(table, use_container_width=True)
 
-        if not table.empty:
-            table["Area"] = table["Size"].apply(size_to_area)
+            # ✅ AUTO CALC
+            def size_to_area(size):
+                try:
+                    w, h = size.split("x")
+                    return float(w) * float(h)
+                except:
+                    return 0
 
-            min_row = table.loc[table["Area"].idxmin()]
-            max_row = table.loc[table["Area"].idxmax()]
+            if not table.empty:
+                table["Area"] = table["Size"].apply(size_to_area)
 
-            st.write("Min Size:", min_row["Size"])
-            st.write("Max Size:", max_row["Size"])
-            st.write("Min Diagonal:", table["Diag Min"].min())
-            st.write("Max Diagonal:", table["Diag Max"].max())
+                min_row = table.loc[table["Area"].idxmin()]
+                max_row = table.loc[table["Area"].idxmax()]
 
-            st.write(
-                "Diagonal Variation:",
-                table["Diag Max"].max() - table["Diag Min"].min()
-            )
+                st.write("Min Size:",min_row["Size"])
+                st.write("Max Size:",max_row["Size"])
+                st.write("Min Diagonal:",table["Diag Min"].min())
+                st.write("Max Diagonal:",table["Diag Max"].max())
+                st.write(
+                    "Diagonal Variation:",
+                    table["Diag Max"].max()-table["Diag Min"].min()
+                )
 
     except Exception as e:
-        st.error("Table not loading properly")
+        st.error("Error loading table")
         st.write(e)
 
-    st.write("SS Min:",row.get("SS Min"))
-    st.write("SS Max:",row.get("SS Max"))
-    st.write("CC Min:",row.get("CC Min"))
-    st.write("CC Max:",row.get("CC Max"))
+    # ✅ S/S AND C/C (YOU ASKED THIS)
+    st.write("S/S Min:",row.get("SS Min"))
+    st.write("S/S Max:",row.get("SS Max"))
+    st.write("C/C Min:",row.get("CC Min"))
+    st.write("C/C Max:",row.get("CC Max"))
 
-    # ✅ FULL PLANARITY
+    # ✅ ================= PLANARITY =================
     st.subheader("Planarity Measurement")
-    
+
     for tile in range(1,7):
         st.markdown(f"### Tile {tile}")
 
@@ -318,7 +333,7 @@ elif st.session_state.page=="view":
             st.write("D1",row.get(f"d1{tile}_{i}_min"),row.get(f"d1{tile}_{i}_max"))
             st.write("D2",row.get(f"d2{tile}_{i}_min"),row.get(f"d2{tile}_{i}_max"))
 
-    # ✅ QA DETAILS
+    # ✅ ================= QA DETAILS =================
     st.subheader("QA Details")
 
     st.write("Randomness:",row["Randomness"])
@@ -329,6 +344,50 @@ elif st.session_state.page=="view":
     st.write("Foot:",row["Foot"])
     st.write("Remarks:",row["Remarks"])
 
+    # ✅ ================= APPROVAL =================
+
+    role = st.session_state.user
+
+    qa=row.get("QA_HEAD","No")
+    qc=row.get("QC_HEAD","No")
+    sort=row.get("SORT_HEAD","No")
+
+    allow=False
+
+    if role=="QA_HEAD":
+        allow=True
+    elif role=="QC_HEAD" and qa=="Yes":
+        allow=True
+    elif role=="SORT_HEAD" and qc=="Yes":
+        allow=True
+    elif role=="GM" and sort=="Yes":
+        allow=True
+
+    if role not in df.columns:
+        df[role]="No"
+
+    col1,col2=st.columns(2)
+
+    if col1.button("Approve"):
+        if allow:
+            df.loc[st.session_state.selected_row,role]="Yes"
+            df.to_csv(CSV_PATH,index=False)
+            st.success("Approved")
+            st.session_state.page="history"
+            st.rerun()
+        else:
+            st.error("Follow approval hierarchy")
+
+    if col2.button("Reject"):
+        df.drop(st.session_state.selected_row,inplace=True)
+        df.reset_index(drop=True,inplace=True)
+        df.to_csv(CSV_PATH,index=False)
+        st.error("Rejected")
+        st.session_state.page="history"
+        st.rerun()
+
+    if st.button("Back"):
+        st.session_state.page="history"
     # ✅ HIERARCHY
     role=st.session_state.user
 
