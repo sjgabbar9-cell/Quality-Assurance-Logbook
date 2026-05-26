@@ -57,21 +57,19 @@ if st.session_state.user is None:
 def save_data(d):
     os.makedirs("data", exist_ok=True)
 
-    # ✅ ensure dataframe structure matches
     df_new = pd.DataFrame([d])
 
-    # ✅ if file exists → append
     if os.path.exists(CSV_PATH):
         try:
             df_old = pd.read_csv(CSV_PATH)
             df = pd.concat([df_old, df_new], ignore_index=True)
         except:
-            # file corrupted → overwrite safely
             df = df_new
     else:
         df = df_new
 
-    df.to_csv(CSV_PATH, index=False)
+    df.to_csv(CSV_PATH,index=False)
+
 # ================= DASHBOARD =================
 if st.session_state.page=="home":
 
@@ -111,8 +109,6 @@ elif st.session_state.page=="entry":
     d["core"]=st.text_input("core")
     d["Stamping and box packing"]=st.number_input("Stamping and box packing", min_value=0)
 
-    # -------- Measurement Table --------
-   # -------- Measurement Table --------
     st.subheader("Measurement Table")
 
     table = st.data_editor(
@@ -125,10 +121,8 @@ elif st.session_state.page=="entry":
         num_rows="dynamic"
     )
 
-    # ✅ STORE TABLE
     d["table_data"] = table.to_json()
 
-    # ✅ AUTO CALC
     def size_to_area(size):
         try:
             w,h = size.split("x")
@@ -146,19 +140,18 @@ elif st.session_state.page=="entry":
         st.write("Max Size:", max_row["Size"])
         st.write("Min Diagonal:", table["Diag Min"].min())
         st.write("Max Diagonal:", table["Diag Max"].max())
+
         st.write(
             "Diagonal Variation:",
             table["Diag Max"].max() - table["Diag Min"].min()
         )
-        
+
         d["SS Min"] = st.number_input("S/S Min", key="ss_min")
         d["SS Max"] = st.number_input("S/S Max", key="ss_max")
 
         d["CC Min"] = st.number_input("C/C Min", key="cc_min")
         d["CC Max"] = st.number_input("C/C Max", key="cc_max")
 
-
-    # -------- PLANARITY ✅ BACK HERE --------
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
@@ -212,7 +205,15 @@ elif st.session_state.page=="qa":
 # ================= HISTORY =================
 elif st.session_state.page=="history":
 
+    if not os.path.exists(CSV_PATH):
+        st.warning("No records found")
+        st.stop()
+
     df=pd.read_csv(CSV_PATH)
+
+    if df.empty:
+        st.warning("No records available")
+        st.stop()
 
     df.insert(0,"S.No", range(1,len(df)+1))
 
@@ -224,7 +225,7 @@ elif st.session_state.page=="history":
         st.session_state.selected_row=s-1
         st.session_state.page="view"
 
-# ================= VIEW (IMPORTANT FIX ✅) =================
+# ================= VIEW =================
 elif st.session_state.page=="view":
 
     df = pd.read_csv(CSV_PATH)
@@ -234,101 +235,7 @@ elif st.session_state.page=="view":
         st.stop()
 
     row = df.loc[st.session_state.selected_row]
-# ================= BASIC DETAILS =================
 
-st.date_input("Date", value=row.get("Date"), disabled=True)
-st.text_input("Batch", value=row.get("Batch"), disabled=True)
-st.text_input("Design", value=row.get("Design"), disabled=True)
-st.text_input("Size", value=row.get("Size"), disabled=True)
-st.text_input("Surface", value=row.get("Surface"), disabled=True)
-st.text_input("Matching", value=row.get("Matching"), disabled=True)
-
-st.number_input("Production Boxes", value=int(row.get("Production Boxes",0)), disabled=True)
-st.number_input("Checked Boxes", value=int(row.get("Checked Boxes",0)), disabled=True)
-
-st.text_input("Core", value=row.get("core"), disabled=True)
-st.number_input("Stamping and box packing", value=int(row.get("Stamping and box packing",0)), disabled=True)
-
-# ================= MEASUREMENT TABLE =================
-st.subheader("Measurement Table")
-
-try:
-    table = pd.read_json(row["table_data"])
-    st.dataframe(table, use_container_width=True)
-except:
-    st.warning("No table data")
-
-st.write("S/S Min:", row.get("SS Min"))
-st.write("S/S Max:", row.get("SS Max"))
-st.write("C/C Min:", row.get("CC Min"))
-st.write("C/C Max:", row.get("CC Max"))
-
-# ================= PLANARITY =================
-st.subheader("Planarity Measurement")
-
-for tile in range(1,7):
-
-    st.markdown(f"### Tile {tile}")
-
-    st.image("assets/plc.png")
-    for i in range(1,7):
-        st.write(
-            f"PLC{i}",
-            row.get(f"plc{tile}_{i}_min"),
-            row.get(f"plc{tile}_{i}_max")
-        )
-
-    st.image("assets/pwc.png")
-    for i in range(1,13):
-        st.write(
-            f"PWC{i}",
-            row.get(f"pwc{tile}_{i}_min"),
-            row.get(f"pwc{tile}_{i}_max")
-        )
-
-    st.image("assets/diagonal.png")
-    for i in range(1,4):
-        st.write(
-            f"D1_{i}",
-            row.get(f"d1{tile}_{i}_min"),
-            row.get(f"d1{tile}_{i}_max")
-        )
-    for i in range(1,4):
-        st.write(
-            f"D2_{i}",
-            row.get(f"d2{tile}_{i}_min"),
-            row.get(f"d2{tile}_{i}_max")
-        )
-
-# ================= QA PAGE =================
-st.subheader("QA Details")
-
-st.text_input("Randomness", value=row.get("Randomness"), disabled=True)
-st.text_input("Time Calibration", value=row.get("Time Calibration"), disabled=True)
-st.text_input("Verify", value=row.get("Verify Time"), disabled=True)
-st.text_input("Cleaning", value=row.get("Cleaning"), disabled=True)
-st.text_input("Chamfering", value=row.get("Chamfering"), disabled=True)
-st.text_area("Foot", value=row.get("Foot"), disabled=True)
-st.text_area("Remarks", value=row.get("Remarks"), disabled=True)
-
-st.divider()
-
-# ================= APPROVAL =================
-role = st.session_state.user
-
-col1, col2 = st.columns(2)
-
-if col1.button("✅ Approve"):
-    df = pd.read_csv(CSV_PATH)
-    df.loc[st.session_state.selected_row, role] = "Yes"
-    df.to_csv(CSV_PATH, index=False)
-    st.success("Approved ✅")
-
-if col2.button("❌ Reject"):
-    df = pd.read_csv(CSV_PATH)
-    df.drop(st.session_state.selected_row, inplace=True)
-    df.to_csv(CSV_PATH, index=False)
-    st.error("Rejected ❌")
-
-if st.button("⬅ Back"):
-    st.session_state.page="history"
+    st.date_input("Date", value=pd.to_datetime(row.get("Date")), disabled=True)
+    st.text_input("Batch", value=row.get("Batch"), disabled=True)
+    st.text_input("Design", value=row.get("Design"), disabled=True)
