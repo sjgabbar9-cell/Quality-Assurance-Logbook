@@ -38,14 +38,6 @@ input, textarea, select { background:white !important; }
     height:220px;
     border:2px solid #ccc;
 }
-
-.box {
-    border:2px solid #aaa;
-    padding:10px;
-    border-radius:10px;
-    text-align:center;
-    margin-bottom:10px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,7 +59,6 @@ if "user" not in st.session_state:
 if st.session_state.user is None:
 
     st.title("QA Logbook Login")
-
     if os.path.exists("logo.png"):
         st.image("logo.png", width=100)
 
@@ -110,7 +101,7 @@ def save_data(data):
     df.to_csv(CSV_PATH, index=False)
 
 # ===================================================
-# PAGE 1: DASHBOARD
+# DASHBOARD
 # ===================================================
 if st.session_state.page == "home":
 
@@ -128,29 +119,29 @@ if st.session_state.page == "home":
     cols = st.columns(4 if role != "QA_SUP" else 3)
 
     with cols[0]:
-        st.markdown('<div class="card">📝<br><h3>New Logbook</h3></div>', unsafe_allow_html=True)
-        if st.button("Open", key="new"):
+        st.markdown('<div class="card">📝<h3>New Logbook</h3></div>', unsafe_allow_html=True)
+        if st.button("Open Entry"):
             st.session_state.page = "entry"
 
     with cols[1]:
-        st.markdown('<div class="card">📥<br><h3>Download</h3></div>', unsafe_allow_html=True)
+        st.markdown('<div class="card">📥<h3>Download</h3></div>', unsafe_allow_html=True)
         if os.path.exists(CSV_PATH):
             with open(CSV_PATH,"rb") as f:
                 st.download_button("Download CSV", f, "qa_logbook.csv")
 
     with cols[2]:
-        st.markdown('<div class="card">📜<br><h3>Previous Records</h3></div>', unsafe_allow_html=True)
+        st.markdown('<div class="card">📜<h3>Records</h3></div>', unsafe_allow_html=True)
         if st.button("View Records"):
             st.session_state.page = "history"
 
     if role != "QA_SUP":
         with cols[3]:
-            st.markdown('<div class="card">✅<br><h3>Approval Records</h3></div>', unsafe_allow_html=True)
+            st.markdown('<div class="card">✅<h3>Approvals</h3></div>', unsafe_allow_html=True)
             if st.button("Open Approvals"):
                 st.session_state.page = "approval"
 
 # ===================================================
-# PAGE 2: ENTRY (ONLY TABLE MODIFIED ✅)
+# ENTRY PAGE
 # ===================================================
 elif st.session_state.page == "entry":
 
@@ -165,73 +156,82 @@ elif st.session_state.page == "entry":
     d["Production Boxes"] = st.number_input("Production Boxes")
     d["Checked Boxes"] = st.number_input("Boxes Checked")
     d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
+    d["Size"] = st.text_input("Tile Size")
 
-    d["Size"] = st.text_input("Tile Size (Reference)")
-
-    # ================= TABLE ✅ UPDATED =================
+    # ================= TABLE =================
     st.subheader("Measurement Table")
 
     table = st.data_editor(
         pd.DataFrame({
-            "Size": ["600x600","600x1200","600x600"],
-            "Diag Min": [0,0,0],
-            "Diag Max": [0,0,0],
-            "Gloss": ["","",""]
+            "Size": ["600x600","600x1200"],
+            "Diag Min": [0,0],
+            "Diag Max": [0,0],
+            "Gloss": ["",""]
         }),
         num_rows="dynamic"
     )
 
-    # ✅ NEW: decimal-compatible parser
     def size_to_area(size):
         try:
-            w, h = size.split("x")
-            return float(w) * float(h)
+            w,h = size.split("x")
+            return float(w)*float(h)
         except:
             return 0
 
     if not table.empty:
-        table["Diag Var"] = table["Diag Max"] - table["Diag Min"]
         table["Area"] = table["Size"].apply(size_to_area)
-
-        st.dataframe(table)
-
         min_row = table.loc[table["Area"].idxmin()]
         max_row = table.loc[table["Area"].idxmax()]
 
-        st.write("✅ Min Size :", min_row["Size"])
-        st.write("✅ Max Size :", max_row["Size"])
+        st.write("✅ Min Size:", min_row["Size"])
+        st.write("✅ Max Size:", max_row["Size"])
 
-        st.write("Min Diagonal:", table["Diag Min"].min())
-        st.write("Max Diagonal:", table["Diag Max"].max())
+    # ================= PLANARITY ✅ NEW =================
+    st.subheader("Planarity Measurement (6 Tiles)")
 
-        st.write("Diagonal Variation:",
-                 table["Diag Max"].max() - table["Diag Min"].min())
+    for tile in range(1,7):
 
-    # ================= PLANARITY =================
-    st.subheader("Planarity Grid")
+        st.markdown(f"### Tile {tile}")
 
-    cols = st.columns(4)
-    for i in range(4):
-        with cols[i]:
-            st.markdown(f'<div class="box">Grid {i+1}</div>', unsafe_allow_html=True)
-            st.number_input("Point 1", key=f"p{i}_1")
-            st.number_input("Point 2", key=f"p{i}_2")
+        st.markdown("#### PLC")
+        for i in range(1,7):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input(f"PLC{i} MIN", key=f"plc{tile}_{i}_min")
+            with col2:
+                st.number_input(f"PLC{i} MAX", key=f"plc{tile}_{i}_max")
 
-    d["SS Min"] = st.number_input("S/S Min")
-    d["SS Max"] = st.number_input("S/S Max")
-    d["CC Min"] = st.number_input("C/C Min")
-    d["CC Max"] = st.number_input("C/C Max")
+        st.markdown("#### PWC")
+        for i in range(1,13):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input(f"PWC{i} MIN", key=f"pwc{tile}_{i}_min")
+            with col2:
+                st.number_input(f"PWC{i} MAX", key=f"pwc{tile}_{i}_max")
 
-    d["Result"] = st.selectbox(
-        "Final Result",
-        ["Accepted","Rejected","Accepted under deviation"]
-    )
+        st.markdown("#### Diagonal 1")
+        for i in range(1,4):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input(f"D1_{i} MIN", key=f"d1{tile}_{i}_min")
+            with col2:
+                st.number_input(f"D1_{i} MAX", key=f"d1{tile}_{i}_max")
+
+        st.markdown("#### Diagonal 2")
+        for i in range(1,4):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input(f"D2_{i} MIN", key=f"d2{tile}_{i}_min")
+            with col2:
+                st.number_input(f"D2_{i} MAX", key=f"d2{tile}_{i}_max")
+
+        st.divider()
 
     if st.button("Next"):
         st.session_state.page = "qa"
 
 # ===================================================
-# PAGE 3: QA PARAMETERS
+# QA PAGE
 # ===================================================
 elif st.session_state.page == "qa":
 
@@ -245,89 +245,35 @@ elif st.session_state.page == "qa":
     )
 
     d["Time Calibration"] = st.text_input("Time of Calibration")
-    d["Verify Time"] = st.selectbox("Verification of Time", ["OK","NOT OK"])
-    d["Marker Test"] = st.selectbox("Marker Test", ["Normal Water","Hot Water"])
-    d["Cleaning Agent"] = st.text_input("Cleaning Agent")
-    d["Chamfering"] = st.selectbox("Chamfering", ["OK","NOT OK"])
-    d["Visual Inspection"] = st.text_area("Visual Inspection")
-    d["Foot Mark"] = st.text_area("Foot Mark")
-    d["Bump Standard"] = st.text_input("Bump Standard")
+    d["Verify Time"] = st.selectbox("Verification", ["OK","NOT OK"])
 
     if st.button("Save"):
         save_data(d)
-        st.session_state.saved = True
-
-    if st.session_state.saved:
-        st.success("Saved successfully ✅")
-
-        if st.button("Go to Dashboard"):
-            st.session_state.page = "home"
-            st.session_state.saved = False
-            st.session_state.data = {}
+        st.success("Saved ✅")
 
 # ===================================================
-# PAGE 4: HISTORY
+# HISTORY
 # ===================================================
 elif st.session_state.page == "history":
 
-    st.header("Previous Records")
-
     if os.path.exists(CSV_PATH):
-        df = pd.read_csv(CSV_PATH)
-        df.insert(0, "S.No", range(1,len(df)+1))
-        st.dataframe(df)
-    else:
-        st.warning("No records found")
+        st.dataframe(pd.read_csv(CSV_PATH))
 
     if st.button("Back"):
         st.session_state.page = "home"
 
 # ===================================================
-# PAGE 5: APPROVAL
+# APPROVAL
 # ===================================================
 elif st.session_state.page == "approval":
 
-    st.header("Approval Records")
-
-    role = st.session_state.user
-
     df = pd.read_csv(CSV_PATH)
 
-    if role == "QA_HEAD":
-        df = df[df["QA_HEAD"] == "No"]
-    elif role == "QC_HEAD":
-        df = df[(df["QA_HEAD"] == "Yes") & (df["QC_HEAD"] == "No")]
-    elif role == "SORT_HEAD":
-        df = df[(df["QC_HEAD"] == "Yes") & (df["SORT_HEAD"] == "No")]
-    elif role == "GM":
-        df = df[(df["SORT_HEAD"] == "Yes") & (df["GM"] == "No")]
+    for i,row in df.iterrows():
+        st.write(row["Batch"], row["Design"])
 
-    for i, row in df.iterrows():
-
-        st.write(f"Batch: {row['Batch']} | Design: {row['Design']}")
-
-        c1, c2 = st.columns(2)
-
-        if c1.button("Approve", key=f"a{i}"):
-            full_df = pd.read_csv(CSV_PATH)
-
-            if role == "QA_HEAD":
-                full_df.loc[i,"QA_HEAD"] = "Yes"
-            elif role == "QC_HEAD":
-                full_df.loc[i,"QC_HEAD"] = "Yes"
-            elif role == "SORT_HEAD":
-                full_df.loc[i,"SORT_HEAD"] = "Yes"
-            elif role == "GM":
-                full_df.loc[i,"GM"] = "Yes"
-
-            full_df.to_csv(CSV_PATH, index=False)
-            st.experimental_rerun()
-
-        if c2.button("Reject", key=f"r{i}"):
-            full_df = pd.read_csv(CSV_PATH)
-            full_df.drop(i, inplace=True)
-            full_df.to_csv(CSV_PATH, index=False)
-            st.experimental_rerun()
-
-    if st.button("Back"):
-        st.session_state.page = "home"
+        if st.button("Approve", key=f"a{i}"):
+            df.loc[i,st.session_state.user]="Yes"
+            df.to_csv(CSV_PATH,index=False)
+            st.rerun()
+``
