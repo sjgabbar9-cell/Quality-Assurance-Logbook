@@ -101,69 +101,70 @@ elif st.session_state.page=="entry":
     d["Size"]=st.text_input("Size")
 
     # -------- Measurement Table --------
+   # -------- Measurement Table --------
     st.subheader("Measurement Table")
 
-table = st.data_editor(
-    pd.DataFrame({
-        "Size": ["600x600","600x1200","600x600"],
-        "Diag Min": [0,0,0],
-        "Diag Max": [0,0,0],
-        "Gloss": ["","",""]
-    }),
-    num_rows="dynamic"
-)
-
-# ✅ Save table
-table = pd.read_json(row["table_data"])
-
-# ✅ Auto calculations
-def size_to_area(size):
-    try:
-        w,h = size.split("x")
-        return float(w)*float(h)
-    except:
-        return 0
-
-if not table.empty:
-    table["Area"] = table["Size"].apply(size_to_area)
-
-    min_row = table.loc[table["Area"].idxmin()]
-    max_row = table.loc[table["Area"].idxmax()]
-
-    st.markdown("### ✅ Calculated Values")
-
-    st.write("Min Size:", min_row["Size"])
-    st.write("Max Size:", max_row["Size"])
-
-    st.write("Min Diagonal:", table["Diag Min"].min())
-    st.write("Max Diagonal:", table["Diag Max"].max())
-
-    st.write(
-        "Diagonal Variation:",
-        table["Diag Max"].max() - table["Diag Min"].min()
+    table = st.data_editor(
+        pd.DataFrame({
+            "Size": ["600x600","600x1200","600x600"],
+            "Diag Min": [0,0,0],
+            "Diag Max": [0,0,0],
+            "Gloss": ["","",""]
+        }),
+        num_rows="dynamic"
     )
 
-    # -------- Planarity --------
+    # ✅ STORE TABLE
+    d["table_data"] = table.to_json()
+
+    # ✅ AUTO CALC
+    def size_to_area(size):
+        try:
+            w,h = size.split("x")
+            return float(w)*float(h)
+        except:
+            return 0
+
+    if not table.empty:
+        table["Area"] = table["Size"].apply(size_to_area)
+
+        min_row = table.loc[table["Area"].idxmin()]
+        max_row = table.loc[table["Area"].idxmax()]
+
+        st.write("Min Size:", min_row["Size"])
+        st.write("Max Size:", max_row["Size"])
+        st.write("Min Diagonal:", table["Diag Min"].min())
+        st.write("Max Diagonal:", table["Diag Max"].max())
+        st.write(
+            "Diagonal Variation:",
+            table["Diag Max"].max() - table["Diag Min"].min()
+        )
+
+    # -------- PLANARITY ✅ BACK HERE --------
+    st.subheader("Planarity Measurement")
+
     for tile in range(1,7):
+
         st.markdown(f"### Tile {tile}")
+
         st.image("assets/plc.png")
         for i in range(1,7):
-            d[f"plc{tile}_{i}_min"]=st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
-            d[f"plc{tile}_{i}_max"]=st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
+            d[f"plc{tile}_{i}_min"] = st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
+            d[f"plc{tile}_{i}_max"] = st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
 
         st.image("assets/pwc.png")
         for i in range(1,13):
-            d[f"pwc{tile}_{i}_min"]=st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
-            d[f"pwc{tile}_{i}_max"]=st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
+            d[f"pwc{tile}_{i}_min"] = st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
+            d[f"pwc{tile}_{i}_max"] = st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
 
         st.image("assets/diagonal.png")
         for i in range(1,4):
-            d[f"d1{tile}_{i}_min"]=st.number_input("D1 Min", key=f"d1{tile}m{i}")
-            d[f"d1{tile}_{i}_max"]=st.number_input("D1 Max", key=f"d1{tile}x{i}")
+            d[f"d1{tile}_{i}_min"] = st.number_input(f"D1_{i} Min", key=f"d1{tile}m{i}")
+            d[f"d1{tile}_{i}_max"] = st.number_input(f"D1_{i} Max", key=f"d1{tile}x{i}")
 
         for i in range(1,4):
-            d[f"d2{tile}_{i}_min"]=st.number_input("D2 Min", key=f"d2{tile}m{i}")
-            d[f"d2{tile}_{i}_max"]=st.number_input("D2 Max", key=f"d2{tile}x{i}")
+            d[f"d2{tile}_{i}_min"] = st.number_input(f"D2_{i} Min", key=f"d2{tile}m{i}")
+            d[f"d2{tile}_{i}_max"] = st.number_input(f"D2_{i} Max", key=f"d2{tile}x{i}")
 
     if st.button("Next"):
         st.session_state.page="qa"
