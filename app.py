@@ -222,76 +222,109 @@ elif st.session_state.page=="history":
 # ================= VIEW (IMPORTANT FIX ✅) =================
 elif st.session_state.page=="view":
 
-    df=pd.read_csv(CSV_PATH)
-    row=df.loc[st.session_state.selected_row]
+   df=pd.read_csv(CSV_PATH)
+row=df.loc[st.session_state.selected_row]
 
-    st.header("Full Logbook")
+st.header("Full Logbook")
 
-    st.write("### Basic Info")
-    st.write(row["Design"], row["Batch"], row["Size"])
+# ================= BASIC DETAILS =================
+st.subheader("Logbook Entry")
 
-    # ✅ TABLE RESTORED
-    st.subheader("Measurement Table")
-    table=pd.read_json(row["table"])
-    st.dataframe(table)
+st.text_input("Date", value=row.get("Date"), disabled=True)
+st.text_input("Batch", value=row.get("Batch"), disabled=True)
+st.text_input("Design", value=row.get("Design"), disabled=True)
+st.text_input("Size", value=row.get("Size"), disabled=True)
+st.text_input("Surface", value=row.get("Surface"), disabled=True)
+st.text_input("Matching", value=row.get("Matching"), disabled=True)
 
-    # ✅ MIN/MAX
-    try:
-        w,h=table["Size"].str.split("x").str[0].astype(float), table["Size"].str.split("x").str[1].astype(float)
-        area=w*h
-        st.write("Min Size:", table.iloc[area.idxmin()]["Size"])
-        st.write("Max Size:", table.iloc[area.idxmax()]["Size"])
-    except:
-        pass
+st.number_input("Production Boxes", value=int(row.get("Production Boxes",0)), disabled=True)
+st.number_input("Checked Boxes", value=int(row.get("Checked Boxes",0)), disabled=True)
 
-    # ✅ PLANARITY FULL
-    for tile in range(1,7):
+st.text_input("Core", value=row.get("core"), disabled=True)
+st.number_input("Stamping and box packing", value=int(row.get("Stamping and box packing",0)), disabled=True)
 
-        st.markdown(f"### Tile {tile}")
+# ================= MEASUREMENT TABLE =================
+st.subheader("Measurement Table")
 
-        st.image("assets/plc.png")
+try:
+    table = pd.read_json(row["table_data"])
+    st.dataframe(table, use_container_width=True)
+except:
+    st.warning("No table data")
 
-        for i in range(1,7):
-            st.write(f"PLC{i}",
-                row.get(f"plc{tile}_{i}_min"),
-                row.get(f"plc{tile}_{i}_max")
-            )
+st.write("S/S Min:", row.get("SS Min"))
+st.write("S/S Max:", row.get("SS Max"))
+st.write("C/C Min:", row.get("CC Min"))
+st.write("C/C Max:", row.get("CC Max"))
 
-        st.image("assets/pwc.png")
+# ================= PLANARITY =================
+st.subheader("Planarity Measurement")
 
-        for i in range(1,13):
-            st.write(f"PWC{i}",
-                row.get(f"pwc{tile}_{i}_min"),
-                row.get(f"pwc{tile}_{i}_max")
-            )
+for tile in range(1,7):
 
-        st.image("assets/diagonal.png")
+    st.markdown(f"### Tile {tile}")
 
-        for i in range(1,4):
-            st.write(f"D1{i}",
-                row.get(f"d1{tile}_{i}_min"),
-                row.get(f"d1{tile}_{i}_max")
-            )
+    st.image("assets/plc.png")
+    for i in range(1,7):
+        st.write(
+            f"PLC{i}",
+            row.get(f"plc{tile}_{i}_min"),
+            row.get(f"plc{tile}_{i}_max")
+        )
 
-        for i in range(1,4):
-            st.write(f"D2{i}",
-                row.get(f"d2{tile}_{i}_min"),
-                row.get(f"d2{tile}_{i}_max")
-            )
+    st.image("assets/pwc.png")
+    for i in range(1,13):
+        st.write(
+            f"PWC{i}",
+            row.get(f"pwc{tile}_{i}_min"),
+            row.get(f"pwc{tile}_{i}_max")
+        )
 
-    st.divider()
+    st.image("assets/diagonal.png")
+    for i in range(1,4):
+        st.write(
+            f"D1_{i}",
+            row.get(f"d1{tile}_{i}_min"),
+            row.get(f"d1{tile}_{i}_max")
+        )
+    for i in range(1,4):
+        st.write(
+            f"D2_{i}",
+            row.get(f"d2{tile}_{i}_min"),
+            row.get(f"d2{tile}_{i}_max")
+        )
 
-    st.write("QA Parameters")
-    st.write(row)
+# ================= QA PAGE =================
+st.subheader("QA Details")
 
-    # ✅ APPROVAL AT END
-    if st.button("Approve"):
-        df.loc[st.session_state.selected_row, st.session_state.user]="Yes"
-        df.to_csv(CSV_PATH,index=False)
+st.text_input("Randomness", value=row.get("Randomness"), disabled=True)
+st.text_input("Time Calibration", value=row.get("Time Calibration"), disabled=True)
+st.text_input("Verify", value=row.get("Verify Time"), disabled=True)
+st.text_input("Cleaning", value=row.get("Cleaning"), disabled=True)
+st.text_input("Chamfering", value=row.get("Chamfering"), disabled=True)
+st.text_area("Foot", value=row.get("Foot"), disabled=True)
+st.text_area("Remarks", value=row.get("Remarks"), disabled=True)
 
-    if st.button("Reject"):
-        df.drop(st.session_state.selected_row,inplace=True)
-        df.to_csv(CSV_PATH,index=False)
+st.divider()
 
-    if st.button("Back"):
+# ================= APPROVAL =================
+role = st.session_state.user
+
+col1, col2 = st.columns(2)
+
+if col1.button("✅ Approve"):
+    df = pd.read_csv(CSV_PATH)
+    df.loc[st.session_state.selected_row, role] = "Yes"
+    df.to_csv(CSV_PATH, index=False)
+    st.success("Approved ✅")
+
+if col2.button("❌ Reject"):
+    df = pd.read_csv(CSV_PATH)
+    df.drop(st.session_state.selected_row, inplace=True)
+    df.to_csv(CSV_PATH, index=False)
+    st.error("Rejected ❌")
+
+if st.button("⬅ Back"):
+    st.session_state.page="history"
+``
         st.session_state.page="history"
