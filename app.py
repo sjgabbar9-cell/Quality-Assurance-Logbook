@@ -230,7 +230,6 @@ elif st.session_state.page=="view":
 
     row = df.loc[st.session_state.selected_row]
 # ================= BASIC DETAILS =================
-st.subheader("Logbook Entry")
 
 st.date_input("Date", value=row.get("Date"), disabled=True)
 st.text_input("Batch", value=row.get("Batch"), disabled=True)
