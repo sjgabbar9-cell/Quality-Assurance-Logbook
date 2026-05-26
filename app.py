@@ -57,16 +57,21 @@ if st.session_state.user is None:
 def save_data(d):
     os.makedirs("data", exist_ok=True)
 
-    df_new=pd.DataFrame([d])
+    # ✅ ensure dataframe structure matches
+    df_new = pd.DataFrame([d])
 
+    # ✅ if file exists → append
     if os.path.exists(CSV_PATH):
-        df_old=pd.read_csv(CSV_PATH)
-        df=pd.concat([df_old, df_new], ignore_index=True)
+        try:
+            df_old = pd.read_csv(CSV_PATH)
+            df = pd.concat([df_old, df_new], ignore_index=True)
+        except:
+            # file corrupted → overwrite safely
+            df = df_new
     else:
-        df=df_new
+        df = df_new
 
-    df.to_csv(CSV_PATH,index=False)
-
+    df.to_csv(CSV_PATH, index=False)
 # ================= DASHBOARD =================
 if st.session_state.page=="home":
 
