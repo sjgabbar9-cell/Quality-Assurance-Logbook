@@ -38,6 +38,8 @@ if "selected_row" not in st.session_state:
 if st.session_state.user is None:
 
     st.title("QA Logbook Login")
+    if os.path.exists("logo.png"):
+    st.image("logo.png", width=150)
 
     uid=st.text_input("User ID")
     pwd=st.text_input("Password", type="password")
@@ -69,16 +71,45 @@ def save_data(d):
     df.to_csv(CSV_PATH, index=False)
 
 # ================= HOME =================
+# ================= DASHBOARD =================
 if st.session_state.page=="home":
 
-    col1,col2 = st.columns(2)
+    # ✅ LOGO ON TOP
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=150)
 
+    st.markdown("## 📊 QA Logbook Dashboard")
+
+    # ✅ TILE STYLE
+    st.markdown("""
+    <style>
+    .tile {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .tile:hover {
+        transform: scale(1.05);
+        transition: 0.3s;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    # ✅ TILE 1
     with col1:
-        if st.button("New Entry"):
+        st.markdown('<div class="tile">📝<br><b>New Logbook</b></div>', unsafe_allow_html=True)
+        if st.button("Open New Entry"):
             st.session_state.page="entry"
 
+    # ✅ TILE 2
     with col2:
-        if st.button("Records"):
+        st.markdown('<div class="tile">📜<br><b>Records</b></div>', unsafe_allow_html=True)
+        if st.button("View Records"):
             st.session_state.page="history"
 
 # ================= ENTRY =================
