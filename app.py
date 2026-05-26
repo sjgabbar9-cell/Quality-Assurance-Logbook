@@ -84,7 +84,7 @@ if st.session_state.user is None:
     st.stop()
 
 # ===================================================
-# SAVE FUNCTION (WITH APPROVAL)
+# SAVE FUNCTION
 # ===================================================
 def save_data(data):
     os.makedirs("data", exist_ok=True)
@@ -150,7 +150,7 @@ if st.session_state.page == "home":
                 st.session_state.page = "approval"
 
 # ===================================================
-# PAGE 2: ENTRY
+# PAGE 2: ENTRY (ONLY TABLE MODIFIED ✅)
 # ===================================================
 elif st.session_state.page == "entry":
 
@@ -166,11 +166,9 @@ elif st.session_state.page == "entry":
     d["Checked Boxes"] = st.number_input("Boxes Checked")
     d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
 
-    # ✅ SIZE DROPDOWN (NEW)
-    sizes = ["600x600","600x1200","1200x1800","800x1600","600x800"]
-    d["Size"] = st.selectbox("Tile Size", sizes)
+    d["Size"] = st.text_input("Tile Size (Reference)")
 
-    # ================= TABLE =================
+    # ================= TABLE ✅ UPDATED =================
     st.subheader("Measurement Table")
 
     table = st.data_editor(
@@ -180,19 +178,14 @@ elif st.session_state.page == "entry":
             "Diag Max": [0,0,0],
             "Gloss": ["","",""]
         }),
-        column_config={
-            "Size": st.column_config.SelectboxColumn(
-                "Size", options=sizes
-            )
-        },
         num_rows="dynamic"
     )
 
-    # ✅ SIZE → AREA FUNCTION
+    # ✅ NEW: decimal-compatible parser
     def size_to_area(size):
         try:
-            w, h = map(int, size.split("x"))
-            return w*h
+            w, h = size.split("x")
+            return float(w) * float(h)
         except:
             return 0
 
@@ -290,7 +283,7 @@ elif st.session_state.page == "history":
         st.session_state.page = "home"
 
 # ===================================================
-# APPROVAL PAGE
+# PAGE 5: APPROVAL
 # ===================================================
 elif st.session_state.page == "approval":
 
@@ -316,7 +309,6 @@ elif st.session_state.page == "approval":
         c1, c2 = st.columns(2)
 
         if c1.button("Approve", key=f"a{i}"):
-
             full_df = pd.read_csv(CSV_PATH)
 
             if role == "QA_HEAD":
