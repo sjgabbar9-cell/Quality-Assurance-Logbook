@@ -146,7 +146,7 @@ elif st.session_state.page=="entry":
             table["Diag Max"].max() - table["Diag Min"].min()
         )
         
-["SS Min"] = st.number_input("S/S Min", key="ss_min")
+d["SS Min"] = st.number_input("S/S Min", key="ss_min")
 d["SS Max"] = st.number_input("S/S Max", key="ss_max")
 
 d["CC Min"] = st.number_input("C/C Min", key="cc_min")
