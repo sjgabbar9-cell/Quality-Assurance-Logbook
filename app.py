@@ -74,23 +74,7 @@ def save_data(d):
 
 # ================= HOME =================
 
-if st.session_state.page == "home":
 
-    if os.path.exists("logo.png"):
-        st.image("logo.png", width=150)
-
-    st.markdown("## 📊 QA Logbook Dashboard")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Open New Entry"):
-            st.session_state.page = "entry"
-
-    with col2:
-
-        if st.button("View Records"):
-            st.session_state.page = "history"
 
 # ================= DASHBOARD =================
 if st.session_state.page=="home":
