@@ -225,4 +225,3 @@ elif st.session_state.page == "view_record":
 
     if st.button("Back"):
         st.session_state.page = "history"
-``
