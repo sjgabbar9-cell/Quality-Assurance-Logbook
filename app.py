@@ -244,56 +244,48 @@ elif st.session_state.page=="history":
 # ================= VIEW =================
 elif st.session_state.page=="view":
 
-    df=pd.read_csv(CSV_PATH)
-    row=df.loc[st.session_state.selected_row]
+    df = pd.read_csv(CSV_PATH)
 
-    st.header("Logbook Entry")
+    if st.session_state.selected_row is None:
+        st.error("No record selected")
+        st.stop()
 
-    # ✅ BASIC
-    st.write("Date:",row["Date"])
-    st.write("Batch:",row["Batch"])
-    st.write("Design:",row["Design"])
-    st.write("Size:",row["Size"])
-    st.write("Surface:",row["Surface"])
-    st.write("Matching:",row["Matching"])
+    row = df.loc[st.session_state.selected_row]
 
-    # ✅ TABLE + AUTO
-st.subheader("Measurement Table")
+    # ✅ NOW ADD THIS (ONLY HERE)
 
-try:
-    # ✅ READ SAVED TABLE
-    table = pd.read_json(row["table_data"])
+    st.subheader("Measurement Table")
 
-    # ✅ SHOW TABLE PROPERLY
-    st.dataframe(table, use_container_width=True)
+    try:
+        table = pd.read_json(row["table_data"])
+        st.dataframe(table, use_container_width=True)
 
-    # ✅ AUTO CALC
-    def size_to_area(size):
-        try:
-            w, h = size.split("x")
-            return float(w) * float(h)
-        except:
-            return 0
+        def size_to_area(size):
+            try:
+                w, h = size.split("x")
+                return float(w) * float(h)
+            except:
+                return 0
 
-    if not table.empty:
-        table["Area"] = table["Size"].apply(size_to_area)
+        if not table.empty:
+            table["Area"] = table["Size"].apply(size_to_area)
 
-        min_row = table.loc[table["Area"].idxmin()]
-        max_row = table.loc[table["Area"].idxmax()]
+            min_row = table.loc[table["Area"].idxmin()]
+            max_row = table.loc[table["Area"].idxmax()]
 
-        st.write("Min Size:", min_row["Size"])
-        st.write("Max Size:", max_row["Size"])
-        st.write("Min Diagonal:", table["Diag Min"].min())
-        st.write("Max Diagonal:", table["Diag Max"].max())
+            st.write("Min Size:", min_row["Size"])
+            st.write("Max Size:", max_row["Size"])
+            st.write("Min Diagonal:", table["Diag Min"].min())
+            st.write("Max Diagonal:", table["Diag Max"].max())
 
-        st.write(
-            "Diagonal Variation:",
-            table["Diag Max"].max() - table["Diag Min"].min()
-        )
+            st.write(
+                "Diagonal Variation:",
+                table["Diag Max"].max() - table["Diag Min"].min()
+            )
 
-except Exception as e:
-    st.error("Table not loading properly")
-    st.write("Error:", e)
+    except Exception as e:
+        st.error("Table not loading properly")
+        st.write(e)
 
     st.write("SS Min:",row.get("SS Min"))
     st.write("SS Max:",row.get("SS Max"))
