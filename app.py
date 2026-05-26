@@ -205,7 +205,7 @@ except Exception as e:
         st.session_state.page="qa"
 
 # ================= QA =================
-elif st.session_state.page=="qa":
+if st.session_state.page=="qa":
 
     d=st.session_state.data
 
