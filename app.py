@@ -38,8 +38,10 @@ if "selected_row" not in st.session_state:
 if st.session_state.user is None:
 
     st.title("QA Logbook Login")
+
 if os.path.exists("logo.png"):
-st.image("logo.png", width=150)
+    st.image("logo.png", width=150)
+
 
     uid=st.text_input("User ID")
     pwd=st.text_input("Password", type="password")
