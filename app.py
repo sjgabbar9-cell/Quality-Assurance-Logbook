@@ -250,4 +250,3 @@ elif st.session_state.page=="view":
 
     if st.button("Back"):
         st.session_state.page="history"
-``
