@@ -10,7 +10,7 @@ st.set_page_config("QA Physical Logbook", layout="wide")
 CSV_PATH = "data/qa_logbook.csv"
 
 # ===================================================
-# USERS (LOGIN)
+# USERS
 # ===================================================
 USERS = {
     "qa_sup": "QA_SUP",
@@ -28,8 +28,6 @@ st.markdown("""
 <style>
 .stApp { background:#FFE5D4; }
 * { color:black !important; }
-input, textarea, select { background:white !important; }
-
 .card {
     background:white;
     padding:30px;
@@ -52,13 +50,11 @@ if "saved" not in st.session_state:
     st.session_state.saved = False
 if "user" not in st.session_state:
     st.session_state.user = None
-
-# ✅ NEW (ADDED ONLY)
 if "selected_row" not in st.session_state:
     st.session_state.selected_row = None
 
 # ===================================================
-# LOGIN PAGE
+# LOGIN
 # ===================================================
 if st.session_state.user is None:
 
@@ -89,18 +85,13 @@ def save_data(data):
     data["SORT_HEAD"] = "No"
     data["GM"] = "No"
 
-    new_df = pd.DataFrame([data])
+    df_new = pd.DataFrame([data])
 
-    try:
-        if os.path.exists(CSV_PATH):
-            old_df = pd.read_csv(CSV_PATH)
-            df = pd.concat([old_df, new_df], ignore_index=True)
-        else:
-            df = new_df
-    except:
-        if os.path.exists(CSV_PATH):
-            os.rename(CSV_PATH, CSV_PATH.replace(".csv", "_backup.csv"))
-        df = new_df
+    if os.path.exists(CSV_PATH):
+        df_old = pd.read_csv(CSV_PATH)
+        df = pd.concat([df_old, df_new], ignore_index=True)
+    else:
+        df = df_new
 
     df.to_csv(CSV_PATH, index=False)
 
@@ -109,18 +100,9 @@ def save_data(data):
 # ===================================================
 if st.session_state.page == "home":
 
-    role = st.session_state.user
+    st.markdown("## QA Physical Parameter Logbook")
 
-    col_logo, col_title = st.columns([1, 6])
-    with col_logo:
-        if os.path.exists("logo.png"):
-            st.image("logo.png", width=80)
-    with col_title:
-        st.markdown("## QA Physical Parameter Logbook")
-
-    st.divider()
-
-    cols = st.columns(4 if role != "QA_SUP" else 3)
+    cols = st.columns(4 if st.session_state.user != "QA_SUP" else 3)
 
     with cols[0]:
         st.markdown('<div class="card">📝<h3>New Logbook</h3></div>', unsafe_allow_html=True)
@@ -129,59 +111,20 @@ if st.session_state.page == "home":
 
     with cols[1]:
         st.markdown('<div class="card">📥<h3>Download</h3></div>', unsafe_allow_html=True)
-        if os.path.exists(CSV_PATH):
-            with open(CSV_PATH,"rb") as f:
-                st.download_button("Download CSV", f, "qa_logbook.csv")
 
     with cols[2]:
         st.markdown('<div class="card">📜<h3>Records</h3></div>', unsafe_allow_html=True)
         if st.button("View Records"):
             st.session_state.page = "history"
 
-    if role != "QA_SUP":
+    if st.session_state.user != "QA_SUP":
         with cols[3]:
             st.markdown('<div class="card">✅<h3>Approvals</h3></div>', unsafe_allow_html=True)
             if st.button("Open Approvals"):
                 st.session_state.page = "approval"
 
 # ===================================================
-# ENTRY PAGE (UNCHANGED)
-# ===================================================
-elif st.session_state.page == "entry":
-
-    st.header("Logbook Entry")
-
-    d = st.session_state.data
-
-    d["Date"] = st.date_input("Date")
-    d["Batch"] = st.text_input("Batch No")
-    d["Design"] = st.text_input("Design Name")
-    d["Shade"] = st.text_input("Shade No")
-    d["Production Boxes"] = st.number_input("Production Boxes")
-    d["Checked Boxes"] = st.number_input("Boxes Checked")
-    d["Stamping"] = st.selectbox("Stamping/Box Packing", ["OK","NOT OK"])
-    d["Size"] = st.text_input("Tile Size")
-
-    st.subheader("Measurement Table")
-
-    table = st.data_editor(
-        pd.DataFrame({
-            "Size": ["600x600","600x1200"],
-            "Diag Min": [0,0],
-            "Diag Max": [0,0],
-            "Gloss": ["",""]
-        }),
-        num_rows="dynamic"
-    )
-
-    if not table.empty:
-        st.write("Table updated ✅")
-
-    if st.button("Next"):
-        st.session_state.page = "qa"
-
-# ===================================================
-# QA PAGE
+# QA PAGE (RESTORED ✅)
 # ===================================================
 elif st.session_state.page == "qa":
 
@@ -196,13 +139,20 @@ elif st.session_state.page == "qa":
 
     d["Time Calibration"] = st.text_input("Time of Calibration")
     d["Verify Time"] = st.selectbox("Verification", ["OK","NOT OK"])
+    d["Marker Test"] = st.selectbox("Marker Test", ["Normal Water","Hot Water"])
+    d["Cleaning Agent"] = st.text_input("Cleaning Agent")
+    d["Chamfering"] = st.selectbox("Chamfering", ["OK","NOT OK"])
+    d["Visual Inspection"] = st.text_area("Visual Inspection")
+    d["Foot Mark"] = st.text_area("Foot Mark")
+    d["Bump Standard"] = st.text_input("Bump Standard")
+    d["Remarks"] = st.text_area("Remarks")
 
     if st.button("Save"):
         save_data(d)
         st.success("Saved ✅")
 
 # ===================================================
-# ✅ UPDATED HISTORY PAGE (CLICKABLE)
+# HISTORY (CLICKABLE)
 # ===================================================
 elif st.session_state.page == "history":
 
@@ -211,75 +161,93 @@ elif st.session_state.page == "history":
     if os.path.exists(CSV_PATH):
         df = pd.read_csv(CSV_PATH)
 
-        for i, row in df.iterrows():
-
+        for i,row in df.iterrows():
             col1, col2 = st.columns([4,1])
 
             with col1:
-                st.write(
-                    f"Design: {row.get('Design')} | "
-                    f"Batch: {row.get('Batch')} | "
-                    f"Size: {row.get('Size')}"
-                )
+                st.write(f"{row.get('Design')} | {row.get('Batch')}")
 
             with col2:
                 if st.button("Open", key=f"open_{i}"):
                     st.session_state.selected_row = i
                     st.session_state.page = "view_record"
 
-            st.divider()
-
-    else:
-        st.warning("No records found")
-
     if st.button("Back"):
         st.session_state.page = "home"
 
 # ===================================================
-# ✅ NEW PAGE (FULL LOGBOOK VIEW + APPROVAL)
+# ✅ FULL RECORD VIEW (UPDATED ✅ ALL 6 TILES)
 # ===================================================
 elif st.session_state.page == "view_record":
 
-    st.header("Logbook Record View")
+    st.header("Full Logbook View")
 
     df = pd.read_csv(CSV_PATH)
     row = df.loc[st.session_state.selected_row]
 
-    st.subheader("Full Record Data")
+    st.subheader("Basic Details")
     st.write(row)
+
+    # ================= PLANARITY =================
+    for tile in range(1,7):
+
+        st.markdown(f"### Tile {tile}")
+
+        # PLC
+        st.markdown("#### PLC")
+        for i in range(1,7):
+            st.write(f"PLC{i} → Min: {row.get(f'plc{tile}_{i}_min')} | Max: {row.get(f'plc{tile}_{i}_max')}")
+
+        # PWC
+        st.markdown("#### PWC")
+        for i in range(1,13):
+            st.write(f"PWC{i} → Min: {row.get(f'pwc{tile}_{i}_min')} | Max: {row.get(f'pwc{tile}_{i}_max')}")
+
+        # Diagonal
+        st.markdown("#### Diagonal")
+        for i in range(1,4):
+            st.write(f"D1_{i} → Min: {row.get(f'd1{tile}_{i}_min')} | Max: {row.get(f'd1{tile}_{i}_max')}")
+
+        for i in range(1,4):
+            st.write(f"D2_{i} → Min: {row.get(f'd2{tile}_{i}_min')} | Max: {row.get(f'd2{tile}_{i}_max')}")
+
+        st.divider()
+
+    # ================= QA DATA =================
+    st.subheader("QA Details")
+
+    st.write(f"Randomness: {row.get('Randomness')}")
+    st.write(f"Calibration: {row.get('Time Calibration')}")
+    st.write(f"Verification: {row.get('Verify Time')}")
+    st.write(f"Marker Test: {row.get('Marker Test')}")
+    st.write(f"Cleaning: {row.get('Cleaning Agent')}")
+    st.write(f"Chamfering: {row.get('Chamfering')}")
+    st.write(f"Foot Mark: {row.get('Foot Mark')}")
+    st.write(f"Bump: {row.get('Bump Standard')}")
+    st.write(f"Remarks: {row.get('Remarks')}")
 
     st.divider()
 
+    # ================= APPROVAL =================
     role = st.session_state.user
 
     col1, col2 = st.columns(2)
 
-    if col1.button("✅ Approve Record"):
-        full_df = pd.read_csv(CSV_PATH)
-
-        if role == "QA_HEAD":
-            full_df.loc[st.session_state.selected_row, "QA_HEAD"] = "Yes"
-        elif role == "QC_HEAD":
-            full_df.loc[st.session_state.selected_row, "QC_HEAD"] = "Yes"
-        elif role == "SORT_HEAD":
-            full_df.loc[st.session_state.selected_row, "SORT_HEAD"] = "Yes"
-        elif role == "GM":
-            full_df.loc[st.session_state.selected_row, "GM"] = "Yes"
-
-        full_df.to_csv(CSV_PATH, index=False)
+    if col1.button("✅ Approve"):
+        df.loc[st.session_state.selected_row, role] = "Yes"
+        df.to_csv(CSV_PATH, index=False)
         st.success("Approved ✅")
 
-    if col2.button("❌ Reject Record"):
-        full_df = pd.read_csv(CSV_PATH)
-        full_df.drop(st.session_state.selected_row, inplace=True)
-        full_df.to_csv(CSV_PATH, index=False)
+    if col2.button("❌ Reject"):
+        df.drop(st.session_state.selected_row, inplace=True)
+        df.to_csv(CSV_PATH, index=False)
         st.error("Rejected ❌")
 
-    if st.button("⬅ Back"):
+    if st.button("Back"):
         st.session_state.page = "history"
 
 # ===================================================
-# APPROVAL (UNCHANGED)
+# APPROVAL PAGE
 # ===================================================
 elif st.session_state.page == "approval":
 
