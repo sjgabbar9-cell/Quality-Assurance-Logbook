@@ -151,7 +151,7 @@ d["SS Max"] = st.number_input("S/S Max", key="ss_max")
 
 d["CC Min"] = st.number_input("C/C Min", key="cc_min")
 d["CC Max"] = st.number_input("C/C Max", key="cc_max")
-)
+
 
     # -------- PLANARITY ✅ BACK HERE --------
     st.subheader("Planarity Measurement")
