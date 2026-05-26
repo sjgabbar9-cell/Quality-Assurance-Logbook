@@ -144,7 +144,7 @@ elif st.session_state.page=="entry":
         st.write(
             "Diagonal Variation:",
             table["Diag Max"].max() - table["Diag Min"].min()
-        
+        )
         
 d["SS Min"] = st.number_input("S/S Min", key="ss_min")
 d["SS Max"] = st.number_input("S/S Max", key="ss_max")
