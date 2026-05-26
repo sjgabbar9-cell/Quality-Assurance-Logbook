@@ -4,7 +4,7 @@ import os
 
 # ================= CONFIG =================
 st.set_page_config("QA Physical Logbook", layout="wide")
-CSV_PATH = "data/QA_Logbook_Master_Template(Sheet1).csv"
+CSV_PATH = "data/qa_logbook.csv"
 
 # ================= USERS =================
 USERS = {
@@ -15,6 +15,14 @@ USERS = {
     "gm": "GM"
 }
 PASSWORD = "123"
+
+# ================= STYLE =================
+st.markdown("""
+<style>
+.stApp { background:#FFE5D4; }
+.card {background:white; padding:30px; border-radius:16px; text-align:center;}
+</style>
+""", unsafe_allow_html=True)
 
 # ================= SESSION =================
 if "page" not in st.session_state:
@@ -58,16 +66,20 @@ def save_data(d):
     else:
         df = df_new
 
-    df.to_csv(CSV_PATH,index=False)
+    df.to_csv(CSV_PATH, index=False)
 
 # ================= HOME =================
 if st.session_state.page=="home":
 
-    if st.button("New Entry"):
-        st.session_state.page="entry"
+    col1,col2 = st.columns(2)
 
-    if st.button("Records"):
-        st.session_state.page="history"
+    with col1:
+        if st.button("New Entry"):
+            st.session_state.page="entry"
+
+    with col2:
+        if st.button("Records"):
+            st.session_state.page="history"
 
 # ================= ENTRY =================
 elif st.session_state.page=="entry":
@@ -90,42 +102,37 @@ elif st.session_state.page=="entry":
     # ✅ MEASUREMENT TABLE
     st.subheader("Measurement Table")
 
-    table = st.data_editor(pd.DataFrame({
-        "Size":["600x600"],
-        "Diag Min":[0],
-        "Diag Max":[0],
-        "Gloss":[""]
-    }))
+    table = st.data_editor(
+        pd.DataFrame({
+            "Size": ["600x600","600x1200","600x600"],
+            "Diag Min": [0,0,0],
+            "Diag Max": [0,0,0],
+            "Gloss": ["","",""]
+        }),
+        num_rows="dynamic"
+    )
 
     d["table_data"]=table.to_json()
-    # ✅ AUTO CALC BACK
-def size_to_area(size):
-    try:
-        w, h = size.split("x")
-        return float(w) * float(h)
-    except:
-        return 0
 
-if not table.empty:
-    table["Area"] = table["Size"].apply(size_to_area)
+    # ✅ AUTO CALC
+    def size_to_area(size):
+        try:
+            w,h=size.split("x")
+            return float(w)*float(h)
+        except:
+            return 0
 
-    try:
-        min_row = table.loc[table["Area"].idxmin()]
-        max_row = table.loc[table["Area"].idxmax()]
+    if not table.empty:
+        table["Area"]=table["Size"].apply(size_to_area)
+
+        min_row=table.loc[table["Area"].idxmin()]
+        max_row=table.loc[table["Area"].idxmax()]
 
         st.write("Min Size:", min_row["Size"])
         st.write("Max Size:", max_row["Size"])
-
         st.write("Min Diagonal:", table["Diag Min"].min())
         st.write("Max Diagonal:", table["Diag Max"].max())
-
-        st.write(
-            "Diagonal Variation:",
-            table["Diag Max"].max() - table["Diag Min"].min()
-        )
-    except:
-        pass
-
+        st.write("Diagonal Variation:", table["Diag Max"].max()-table["Diag Min"].min())
 
     d["SS Min"]=st.number_input("SS Min")
     d["SS Max"]=st.number_input("SS Max")
@@ -136,7 +143,6 @@ if not table.empty:
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
-
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
@@ -185,7 +191,15 @@ elif st.session_state.page=="qa":
 # ================= HISTORY =================
 elif st.session_state.page=="history":
 
+    if not os.path.exists(CSV_PATH):
+        st.warning("No records yet")
+        st.stop()
+
     df=pd.read_csv(CSV_PATH)
+
+    if df.empty:
+        st.warning("No data")
+        st.stop()
 
     df.insert(0,"S.No", range(1,len(df)+1))
     st.dataframe(df)
@@ -212,73 +226,59 @@ elif st.session_state.page=="view":
     st.write("Surface:",row["Surface"])
     st.write("Matching:",row["Matching"])
 
-    # ✅ TABLE
+    # ✅ TABLE + AUTO
     st.subheader("Measurement Table")
+
     try:
         table=pd.read_json(row["table_data"])
         st.dataframe(table)
+
+        def size_to_area(size):
+            w,h=size.split("x")
+            return float(w)*float(h)
+
+        table["Area"]=table["Size"].apply(size_to_area)
+
+        min_row=table.loc[table["Area"].idxmin()]
+        max_row=table.loc[table["Area"].idxmax()]
+
+        st.write("Min Size:",min_row["Size"])
+        st.write("Max Size:",max_row["Size"])
+
+        st.write("Min Diagonal:",table["Diag Min"].min())
+        st.write("Max Diagonal:",table["Diag Max"].max())
+        st.write("Diagonal Variation:",table["Diag Max"].max()-table["Diag Min"].min())
+
     except:
         pass
-    # ✅ AUTO CALC DISPLAY IN VIEW
-try:
-    table = pd.read_json(row["table_data"])
 
-    def size_to_area(size):
-        try:
-            w, h = size.split("x")
-            return float(w) * float(h)
-        except:
-            return 0
+    st.write("SS Min:",row.get("SS Min"))
+    st.write("SS Max:",row.get("SS Max"))
+    st.write("CC Min:",row.get("CC Min"))
+    st.write("CC Max:",row.get("CC Max"))
 
-    table["Area"] = table["Size"].apply(size_to_area)
-
-    min_row = table.loc[table["Area"].idxmin()]
-    max_row = table.loc[table["Area"].idxmax()]
-
-    st.write("Min Size:", min_row["Size"])
-    st.write("Max Size:", max_row["Size"])
-
-    st.write("Min Diagonal:", table["Diag Min"].min())
-    st.write("Max Diagonal:", table["Diag Max"].max())
-
-    st.write(
-        "Diagonal Variation:",
-        table["Diag Max"].max() - table["Diag Min"].min()
-    )
-
-except:
-    pass
-
-    # ✅ PLANARITY FULL
+    # ✅ FULL PLANARITY
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
-
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
         for i in range(1,7):
-            st.write(f"PLC{i}",
-                row.get(f"plc{tile}_{i}_min"),
-                row.get(f"plc{tile}_{i}_max"))
+            st.write("PLC",row.get(f"plc{tile}_{i}_min"),row.get(f"plc{tile}_{i}_max"))
 
         st.image("assets/pwc.png")
         for i in range(1,13):
-            st.write(f"PWC{i}",
-                row.get(f"pwc{tile}_{i}_min"),
-                row.get(f"pwc{tile}_{i}_max"))
+            st.write("PWC",row.get(f"pwc{tile}_{i}_min"),row.get(f"pwc{tile}_{i}_max"))
 
         st.image("assets/diagonal.png")
         for i in range(1,4):
-            st.write(f"D1{i}",
-                row.get(f"d1{tile}_{i}_min"),
-                row.get(f"d1{tile}_{i}_max"))
-            st.write(f"D2{i}",
-                row.get(f"d2{tile}_{i}_min"),
-                row.get(f"d2{tile}_{i}_max"))
+            st.write("D1",row.get(f"d1{tile}_{i}_min"),row.get(f"d1{tile}_{i}_max"))
+            st.write("D2",row.get(f"d2{tile}_{i}_min"),row.get(f"d2{tile}_{i}_max"))
 
     # ✅ QA DETAILS
     st.subheader("QA Details")
+
     st.write("Randomness:",row["Randomness"])
     st.write("Time Calibration:",row["Time Calibration"])
     st.write("Verify:",row["Verify Time"])
