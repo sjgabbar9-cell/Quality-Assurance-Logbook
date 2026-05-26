@@ -132,40 +132,38 @@ elif st.session_state.page=="entry":
     d["core"]=st.text_input("core")
     d["Stamping and box packing"]=st.number_input("Stamping and box packing")
 
-    # ✅ MEASUREMENT TABLE
+   # ✅ TABLE + AUTO
     st.subheader("Measurement Table")
 
-    table = st.data_editor(
-        pd.DataFrame({
-            "Size": ["600x600","600x1200","600x600"],
-            "Diag Min": [0,0,0],
-            "Diag Max": [0,0,0],
-            "Gloss": ["","",""]
-        }),
-        num_rows="dynamic"
-    )
+    try:
+        table = pd.read_json(row["table_data"])
+        st.dataframe(table, use_container_width=True)
 
-    d["table_data"]=table.to_json()
+        def size_to_area(size):
+            try:
+                w, h = size.split("x")
+                return float(w) * float(h)
+            except:
+                return 0
 
-    # ✅ AUTO CALC
-    def size_to_area(size):
-        try:
-            w,h=size.split("x")
-            return float(w)*float(h)
-        except:
-            return 0
+        if not table.empty:
+            table["Area"] = table["Size"].apply(size_to_area)
 
-    if not table.empty:
-        table["Area"]=table["Size"].apply(size_to_area)
+            min_row = table.loc[table["Area"].idxmin()]
+            max_row = table.loc[table["Area"].idxmax()]
 
-        min_row=table.loc[table["Area"].idxmin()]
-        max_row=table.loc[table["Area"].idxmax()]
+            st.write("Min Size:", min_row["Size"])
+            st.write("Max Size:", max_row["Size"])
+            st.write("Min Diagonal:", table["Diag Min"].min())
+            st.write("Max Diagonal:", table["Diag Max"].max())
+            st.write(
+                "Diagonal Variation:",
+                table["Diag Max"].max() - table["Diag Min"].min()
+            )
 
-        st.write("Min Size:", min_row["Size"])
-        st.write("Max Size:", max_row["Size"])
-        st.write("Min Diagonal:", table["Diag Min"].min())
-        st.write("Max Diagonal:", table["Diag Max"].max())
-        st.write("Diagonal Variation:", table["Diag Max"].max()-table["Diag Min"].min())
+    except Exception as e:
+        st.error("Table not loading")
+        st.write(e)
 
     d["SS Min"]=st.number_input("SS Min")
     d["SS Max"]=st.number_input("SS Max")
