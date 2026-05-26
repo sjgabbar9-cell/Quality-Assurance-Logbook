@@ -326,5 +326,3 @@ if col2.button("❌ Reject"):
 
 if st.button("⬅ Back"):
     st.session_state.page="history"
-``
-        st.session_state.page="history"
