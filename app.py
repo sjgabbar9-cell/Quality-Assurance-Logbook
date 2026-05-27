@@ -139,8 +139,8 @@ elif st.session_state.page=="entry":
     table = st.data_editor(
         pd.DataFrame({
             "Size": ["600x600","600x1200","600x600"],
-            "Diag Min": [0,0,0],
-            "Diag Max": [0,0,0],
+            "Diag Min": [0.00,0.00,0.00],
+            "Diag Max": [0.00,0.00,0.00],
             "Gloss": ["","",""]
         }),
         num_rows="dynamic"
