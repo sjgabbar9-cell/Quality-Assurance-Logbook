@@ -261,30 +261,50 @@ elif st.session_state.page=="view":
     st.write("Matching:",row["Matching"])
 
     # ✅ TABLE + AUTO
-    st.subheader("Measurement Table")
+  # ✅ TABLE + AUTO (FIXED)
+st.subheader("Measurement Table")
 
-    try:
-        table=pd.read_json(row["table_data"])
-        st.dataframe(table)
+try:
+    if pd.isna(row.get("table_data")):
+        st.warning("No measurement data available")
+    else:
+        table = pd.read_json(row["table_data"])
+
+        st.dataframe(table, use_container_width=True)
 
         def size_to_area(size):
-            w,h=size.split("x")
-            return float(w)*float(h)
+            try:
+                w, h = size.split("x")
+                return float(w) * float(h)
+            except:
+                return 0
 
-        table["Area"]=table["Size"].apply(size_to_area)
+        table["Diag Min"] = pd.to_numeric(table["Diag Min"], errors='coerce')
+        table["Diag Max"] = pd.to_numeric(table["Diag Max"], errors='coerce')
 
-        min_row=table.loc[table["Area"].idxmin()]
-        max_row=table.loc[table["Area"].idxmax()]
+        table["Area"] = table["Size"].astype(str).apply(size_to_area)
 
-        st.write("Min Size:",min_row["Size"])
-        st.write("Max Size:",max_row["Size"])
+        table = table.dropna(subset=["Diag Min","Diag Max"])
 
-        st.write("Min Diagonal:",table["Diag Min"].min())
-        st.write("Max Diagonal:",table["Diag Max"].max())
-        st.write("Diagonal Variation:",table["Diag Max"].max()-table["Diag Min"].min())
+        if not table.empty:
+            min_row = table.loc[table["Area"].idxmin()]
+            max_row = table.loc[table["Area"].idxmax()]
 
-    except:
-        pass
+            st.write("Min Size:", min_row["Size"])
+            st.write("Max Size:", max_row["Size"])
+            st.write("Min Diagonal:", table["Diag Min"].min())
+            st.write("Max Diagonal:", table["Diag Max"].max())
+
+            st.write(
+                "Diagonal Variation:",
+                table["Diag Max"].max() - table["Diag Min"].min()
+            )
+        else:
+            st.warning("Measurement table is empty")
+
+except Exception as e:
+    st.error("Error reading measurement data")
+    st.write(e)
 
     st.write("SS Min:",row.get("SS Min"))
     st.write("SS Max:",row.get("SS Max"))
