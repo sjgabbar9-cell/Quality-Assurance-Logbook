@@ -58,18 +58,25 @@ if st.session_state.user is None:
 
 # ================= SAVE =================
 
-# ✅ NEW: SAVE IMAGE FUNCTION
-def save_image(uploaded_file, prefix):
-    if uploaded_file is None:
+# ✅ NEW: SAVE MULTIPLE IMAGES
+def save_images(uploaded_files, prefix):
+    if not uploaded_files:
         return None
 
     os.makedirs("images", exist_ok=True)
-    path = f"images/{prefix}_{uploaded_file.name}"
 
-    with open(path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+    paths = []
 
-    return path
+    for file in uploaded_files:
+        path = f"images/{prefix}_{file.name}"
+        with open(path, "wb") as f:
+            f.write(file.getbuffer())
+
+        paths.append(path)
+
+    # ✅ store as string list (comma separated)
+    return ",".join(paths)
+
 
 def save_data(d):
     os.makedirs("data", exist_ok=True)
@@ -150,10 +157,16 @@ elif st.session_state.page=="entry":
     # ✅ MEASUREMENT TABLE
     st.subheader("Measurement Table")
     # ✅ NEW (4 spaces)
-    mt_img = st.file_uploader("Upload Measurement Image", type=["png","jpg"])
+    # ✅ NEW MULTIPLE
+    mt_imgs = st.file_uploader(
+        "Upload Measurement Images",
+        type=["png","jpg"],
+        accept_multiple_files=True
+    )
 
-    if mt_img:
-        d["mt_image"] = save_image(mt_img, "mt")
+    if mt_imgs:
+        d["mt_image"] = save_images(mt_imgs, "mt")
+        
     table = st.data_editor(
         pd.DataFrame({
             "Size": ["600x600","600x1200","600x600"],
@@ -202,14 +215,17 @@ elif st.session_state.page=="entry":
 
     for tile in range(1,7):
         # ✅ NEW (8 spaces)
-        tile_img = st.file_uploader(
-            f"Upload Tile {tile} Image",
+        tile_imgs = st.file_uploader(
+            f"Upload Tile {tile} Images",
             type=["png","jpg"],
-            key=f"tile{tile}"
+            key=f"tile{tile}",
+            accept_multiple_files=True
         )
 
-        if tile_img:
-            d[f"tile_image_{tile}"] = save_image(tile_img, f"tile{tile}")
+        if tile_imgs:
+            d[f"tile_image_{tile}"] = save_images(tile_imgs, f"tile{tile}")
+
+        
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
@@ -240,11 +256,15 @@ elif st.session_state.page=="qa":
 
     st.header("QA Page")
     # ✅ NEW (4 spaces)
-    qa_img = st.file_uploader("Upload QA Image", type=["png","jpg"])
+    qa_imgs = st.file_uploader(
+        "Upload QA Images",
+        type=["png","jpg"],
+        accept_multiple_files=True
+    )
 
-    if qa_img:
-        d["qa_image"] = save_image(qa_img, "qa")
-
+    if qa_imgs:
+        d["qa_image"] = save_images(qa_imgs, "qa")
+        
     d["Randomness"]=st.selectbox("Randomness",
         ["Standard","Uniform","Slightly","Moderately","Distinctly"])
     d["Time Calibration"]=st.text_input("Time Calibration")
@@ -309,10 +329,20 @@ elif st.session_state.page=="view":
     st.write("Supervisor:",row["Supervisor"])
     # ✅ NEW (4 spaces)
     if pd.notna(row.get("mt_image")):
-        st.image(row["mt_image"], caption="Measurement Image")
 
-        with open(row["mt_image"], "rb") as f:
-            st.download_button("Download Measurement Image", f)
+        img_paths = row["mt_image"].split(",")
+
+        for path in img_paths:
+            if path:
+                st.image(path, caption="Measurement Image")
+
+                with open(path, "rb") as f:
+                    st.download_button(
+                        "Download",
+                        f,
+                        file_name=os.path.basename(path)
+                    )
+        
 
     # ✅ NEW: SHOW MEASUREMENT TABLE FROM COLUMNS
     st.subheader("Measurement Table")
@@ -366,18 +396,22 @@ elif st.session_state.page=="view":
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
-        # ✅ NEW (8 spaces)
-        img = row.get(f"tile_image_{tile}")
+        imgs = row.get(f"tile_image_{tile}")
 
-        if pd.notna(img):
-            st.image(img, caption=f"Tile {tile}")
+        if pd.notna(imgs):
+            img_list = imgs.split(",")
 
-            with open(img, "rb") as f:
-                st.download_button(
-                    f"Download Tile {tile}",
-                    f,
-                    file_name=f"tile_{tile}.jpg"
-                )
+            for path in img_list:
+                if path:
+                    st.image(path, caption=f"Tile {tile}")
+
+                    with open(path, "rb") as f:
+                        st.download_button(
+                            f"Download Tile {tile}",
+                            f,
+                            file_name=os.path.basename(path)
+                        )
+
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
@@ -397,11 +431,19 @@ elif st.session_state.page=="view":
     st.subheader("QA Details")
     # ✅ NEW (4 spaces)
     if pd.notna(row.get("qa_image")):
-        st.image(row["qa_image"], caption="QA Image")
 
-        with open(row["qa_image"], "rb") as f:
-            st.download_button("Download QA Image", f)
+        qa_list = row["qa_image"].split(",")
 
+        for path in qa_list:
+            if path:
+                st.image(path, caption="QA Image")
+
+                with open(path, "rb") as f:
+                    st.download_button(
+                        "Download QA Image",
+                        f,
+                        file_name=os.path.basename(path)
+                    )
     st.write("Randomness:",row["Randomness"])
     st.write("Time Calibration:",row["Time Calibration"])
     st.write("Verify:",row["Verify Time"])
