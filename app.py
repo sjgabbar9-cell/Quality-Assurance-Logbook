@@ -479,12 +479,28 @@ elif st.session_state.page=="view":
     col1,col2=st.columns(2)
 
     if col1.button("Approve"):
-        if allow:
-            df.loc[st.session_state.selected_row,role]="Yes"
-            df.to_csv(CSV_PATH,index=False)
-            st.success("Approved")
-            st.session_state.page="history"
-            st.rerun()
+
+    if allow:
+
+        df.loc[st.session_state.selected_row,role]="Yes"
+        df.to_csv(CSV_PATH,index=False)
+
+        # ✅ NEW: SHOW DIALOG MESSAGE
+        st.success("✅ Data Approved Successfully!")
+
+        # ✅ OPTIONAL POPUP STYLE (modern UI)
+        st.toast(f"Approved by {role} ✅")
+
+        # ✅ DELAY REMOVAL (so user sees message)
+        import time
+        time.sleep(1.5)
+
+        st.session_state.page="history"
+        st.rerun()
+
+    else:
+        st.error("Follow approval hierarchy")
+
         else:
             st.error("Follow approval hierarchy")
 
