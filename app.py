@@ -342,8 +342,6 @@ elif st.session_state.page=="view":
         file_name=f"Measurement_{row['Batch']}.csv",
         mime="text/csv"
     )
-``
-
     # ✅ CALCULATIONS
     try:
         table["Diag Min"] = pd.to_numeric(table["Diag Min"], errors="coerce")
