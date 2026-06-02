@@ -333,6 +333,16 @@ elif st.session_state.page=="view":
     })
 
     st.dataframe(table, use_container_width=True)
+    # ✅ NEW: DOWNLOAD MEASUREMENT TABLE
+    csv_table = table.to_csv(index=False).encode('utf-8')
+
+    st.download_button(
+        "Download Measurement Table",
+        csv_table,
+        file_name=f"Measurement_{row['Batch']}.csv",
+        mime="text/csv"
+    )
+``
 
     # ✅ CALCULATIONS
     try:
