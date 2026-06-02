@@ -132,7 +132,7 @@ elif st.session_state.page=="entry":
     d["Checked Boxes"]=st.number_input("Checked Boxes")
     d["core"]=st.text_input("core")
     d["Stamping and box packing"]=st.number_input("Stamping and box packing")
-
+    d["Supervisor"]=st.text_input("Supervisor")
     # ✅ MEASUREMENT TABLE
     st.subheader("Measurement Table")
 
@@ -259,7 +259,7 @@ elif st.session_state.page=="view":
     st.write("Size:",row["Size"])
     st.write("Surface:",row["Surface"])
     st.write("Matching:",row["Matching"])
-
+    st.write("Supervisor:",row["Supervisor"])
     # ✅ TABLE + AUTO
     st.subheader("Measurement Table")
 
