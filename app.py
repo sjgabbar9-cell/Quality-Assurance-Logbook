@@ -480,7 +480,7 @@ elif st.session_state.page=="view":
 
     if col1.button("Approve"):
 
-    if allow:
+     if allow:
 
         df.loc[st.session_state.selected_row,role]="Yes"
         df.to_csv(CSV_PATH,index=False)
