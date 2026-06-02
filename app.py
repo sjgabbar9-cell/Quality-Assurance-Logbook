@@ -238,7 +238,6 @@ elif st.session_state.page=="qa":
 
     if qa_img:
         d["qa_image"] = save_image(qa_img, "qa")
-``
 
     d["Randomness"]=st.selectbox("Randomness",
         ["Standard","Uniform","Slightly","Moderately","Distinctly"])
