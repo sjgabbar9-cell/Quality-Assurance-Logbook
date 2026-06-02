@@ -163,8 +163,14 @@ elif st.session_state.page=="entry":
         }),
         num_rows="dynamic"
     )
+    # ✅ NEW: STORE INDIVIDUAL COLUMNS
+    for idx, row_t in table.iterrows():
+        i = idx + 1  # 1,2,3
 
-    d["table_data"]=table.to_json()
+        d[f"Size_{i}"] = row_t["Size"]
+        d[f"DiagMin_{i}"] = row_t["Diag Min"]
+        d[f"DiagMax_{i}"] = row_t["Diag Max"]
+        d[f"Gloss_{i}"] = row_t["Gloss"]
 
     # ✅ AUTO CALC
     def size_to_area(size):
@@ -307,30 +313,40 @@ elif st.session_state.page=="view":
 
         with open(row["mt_image"], "rb") as f:
             st.download_button("Download Measurement Image", f)
-    # ✅ TABLE + AUTO
+
+    # ✅ NEW: SHOW MEASUREMENT TABLE FROM COLUMNS
     st.subheader("Measurement Table")
 
+    table = pd.DataFrame({
+        "Size": [
+            row.get("Size_1"), row.get("Size_2"), row.get("Size_3")
+        ],
+        "Diag Min": [
+            row.get("DiagMin_1"), row.get("DiagMin_2"), row.get("DiagMin_3")
+        ],
+        "Diag Max": [
+            row.get("DiagMax_1"), row.get("DiagMax_2"), row.get("DiagMax_3")
+        ],
+        "Gloss": [
+            row.get("Gloss_1"), row.get("Gloss_2"), row.get("Gloss_3")
+        ]
+    })
+
+    st.dataframe(table, use_container_width=True)
+
+    # ✅ CALCULATIONS
     try:
-        table=pd.read_json(row["table_data"])
-        st.dataframe(table)
+        table["Diag Min"] = pd.to_numeric(table["Diag Min"], errors="coerce")
+        table["Diag Max"] = pd.to_numeric(table["Diag Max"], errors="coerce")
 
-        def size_to_area(size):
-            w,h=size.split("x")
-            return float(w)*float(h)
-
-        table["Area"]=table["Size"].apply(size_to_area)
-
-        min_row=table.loc[table["Area"].idxmin()]
-        max_row=table.loc[table["Area"].idxmax()]
-
-        st.write("Min Size:",min_row["Size"])
-        st.write("Max Size:",max_row["Size"])
-
-        st.write("Min Diagonal:",table["Diag Min"].min())
-        st.write("Max Diagonal:",table["Diag Max"].max())
-        st.write("Diagonal Variation:",table["Diag Max"].max()-table["Diag Min"].min())
-
+        st.write("Min Diagonal:", table["Diag Min"].min())
+        st.write("Max Diagonal:", table["Diag Max"].max())
+        st.write(
+            "Diagonal Variation:",
+            table["Diag Max"].max() - table["Diag Min"].min()
+        )
     except:
+        pass
         pass
 
     st.write("SS Min:",row.get("SS Min"))
