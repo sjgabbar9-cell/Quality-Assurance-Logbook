@@ -57,6 +57,20 @@ if st.session_state.user is None:
     st.stop()
 
 # ================= SAVE =================
+
+# ✅ NEW: SAVE IMAGE FUNCTION
+def save_image(uploaded_file, prefix):
+    if uploaded_file is None:
+        return None
+
+    os.makedirs("images", exist_ok=True)
+    path = f"images/{prefix}_{uploaded_file.name}"
+
+    with open(path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    return path
+
 def save_data(d):
     os.makedirs("data", exist_ok=True)
 
@@ -135,7 +149,11 @@ elif st.session_state.page=="entry":
     d["Supervisor"]=st.text_input("Supervisor")
     # ✅ MEASUREMENT TABLE
     st.subheader("Measurement Table")
+    # ✅ NEW (4 spaces)
+    mt_img = st.file_uploader("Upload Measurement Image", type=["png","jpg"])
 
+    if mt_img:
+        d["mt_image"] = save_image(mt_img, "mt")
     table = st.data_editor(
         pd.DataFrame({
             "Size": ["600x600","600x1200","600x600"],
@@ -177,6 +195,15 @@ elif st.session_state.page=="entry":
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
+        # ✅ NEW (8 spaces)
+        tile_img = st.file_uploader(
+            f"Upload Tile {tile} Image",
+            type=["png","jpg"],
+            key=f"tile{tile}"
+        )
+
+        if tile_img:
+            d[f"tile_image_{tile}"] = save_image(tile_img, f"tile{tile}")
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
@@ -206,6 +233,12 @@ elif st.session_state.page=="qa":
     d=st.session_state.data
 
     st.header("QA Page")
+    # ✅ NEW (4 spaces)
+    qa_img = st.file_uploader("Upload QA Image", type=["png","jpg"])
+
+    if qa_img:
+        d["qa_image"] = save_image(qa_img, "qa")
+``
 
     d["Randomness"]=st.selectbox("Randomness",
         ["Standard","Uniform","Slightly","Moderately","Distinctly"])
@@ -237,6 +270,15 @@ elif st.session_state.page=="history":
 
     df.insert(0,"S.No", range(1,len(df)+1))
     st.dataframe(df)
+    # ✅ NEW: SHOW IMAGE IN HISTORY (4 spaces)
+    if "mt_image" in df.columns:
+        st.subheader("Measurement Image Preview")
+
+        selected = st.selectbox("Select for Preview", df["S.No"])
+        preview_row = df.loc[selected - 1]
+
+        if pd.notna(preview_row.get("mt_image")):
+            st.image(preview_row["mt_image"])
 
     s=st.selectbox("Select record", df["S.No"])
 
@@ -260,6 +302,12 @@ elif st.session_state.page=="view":
     st.write("Surface:",row["Surface"])
     st.write("Matching:",row["Matching"])
     st.write("Supervisor:",row["Supervisor"])
+    # ✅ NEW (4 spaces)
+    if pd.notna(row.get("mt_image")):
+        st.image(row["mt_image"], caption="Measurement Image")
+
+        with open(row["mt_image"], "rb") as f:
+            st.download_button("Download Measurement Image", f)
     # ✅ TABLE + AUTO
     st.subheader("Measurement Table")
 
@@ -295,6 +343,18 @@ elif st.session_state.page=="view":
     st.subheader("Planarity Measurement")
 
     for tile in range(1,7):
+        # ✅ NEW (8 spaces)
+        img = row.get(f"tile_image_{tile}")
+
+        if pd.notna(img):
+            st.image(img, caption=f"Tile {tile}")
+
+            with open(img, "rb") as f:
+                st.download_button(
+                    f"Download Tile {tile}",
+                    f,
+                    file_name=f"tile_{tile}.jpg"
+                )
         st.markdown(f"### Tile {tile}")
 
         st.image("assets/plc.png")
@@ -312,6 +372,12 @@ elif st.session_state.page=="view":
 
     # ✅ QA DETAILS
     st.subheader("QA Details")
+    # ✅ NEW (4 spaces)
+    if pd.notna(row.get("qa_image")):
+        st.image(row["qa_image"], caption="QA Image")
+
+        with open(row["qa_image"], "rb") as f:
+            st.download_button("Download QA Image", f)
 
     st.write("Randomness:",row["Randomness"])
     st.write("Time Calibration:",row["Time Calibration"])
