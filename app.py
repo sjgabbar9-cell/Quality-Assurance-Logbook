@@ -478,8 +478,8 @@ elif st.session_state.page=="view":
 
     col1,col2=st.columns(2)
 
-if col1.button("Approve"):
-    if allow:
+    if col1.button("Approve"):
+        if allow:
 
         df.loc[st.session_state.selected_row,role]="Yes"
         df.to_csv(CSV_PATH,index=False)
@@ -496,7 +496,7 @@ if col1.button("Approve"):
 
         st.session_state.page="history"
         st.rerun()
-    else:
+        else:
         st.error("Follow approval hierarchy")
 
 
