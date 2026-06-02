@@ -499,8 +499,7 @@ if col1.button("Approve"):
     else:
         st.error("Follow approval hierarchy")
 
-        else:
-            st.error("Follow approval hierarchy")
+
 
     if col2.button("Reject"):
         df.drop(st.session_state.selected_row,inplace=True)
