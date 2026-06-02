@@ -310,6 +310,9 @@ elif st.session_state.page=="history":
     if st.button("Open"):
         st.session_state.selected_row=s-1
         st.session_state.page="view"
+    # ✅ NEW: BACK TO DASHBOARD
+    if st.button("Back to Dashboard"):
+        st.session_state.page="home"
 
 # ================= VIEW =================
 elif st.session_state.page=="view":
@@ -507,3 +510,6 @@ elif st.session_state.page=="view":
 
     if st.button("Back"):
         st.session_state.page="history"
+    if st.button("Back to Dashboard"):
+        st.session_state.page="home"
+
