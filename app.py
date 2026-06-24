@@ -183,7 +183,7 @@ elif st.session_state.page=="entry":
         },
         num_rows="dynamic"
     )
-    )
+    
     # ✅ NEW: STORE INDIVIDUAL COLUMNS
     for idx, row_t in table.iterrows():
         i = idx + 1  # 1,2,3
