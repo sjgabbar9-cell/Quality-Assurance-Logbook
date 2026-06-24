@@ -227,15 +227,7 @@ elif st.session_state.page=="entry":
     if "tile_count" not in st.session_state:
         st.session_state.tile_count = 1
 
-    col_add, col_remove = st.columns(2)
-
-    with col_add:
-        if st.button("➕ Add Tile"):
-            st.session_state.tile_count += 1
-
-    with col_remove:
-        if st.button("➖ Remove Tile") and st.session_state.tile_count > 1:
-            st.session_state.tile_count -= 1
+   
 
         for tile in range(1, st.session_state.tile_count + 1):
             tile_imgs = st.file_uploader(
@@ -244,6 +236,17 @@ elif st.session_state.page=="entry":
             key=f"tile{tile}",
             accept_multiple_files=True
         )
+            st.divider()
+
+    # ✅ ADD TILE BUTTON AT BOTTOM
+    if st.button("➕ Add Another Tile"):
+        st.session_state.tile_count += 1
+
+    # ✅ OPTIONAL REMOVE
+    if st.session_state.tile_count > 1:
+        if st.button("➖ Remove Last Tile"):
+            st.session_state.tile_count -= 1
+
 
         if tile_imgs:
             d[f"tile_image_{tile}"] = save_images(tile_imgs, f"tile{tile}")
