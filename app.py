@@ -182,7 +182,7 @@ elif st.session_state.page=="entry":
               # ✅ NEW
         }),
        
-        },
+        
         num_rows="dynamic"
     )
     
