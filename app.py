@@ -156,6 +156,12 @@ elif st.session_state.page=="entry":
     d["Supervisor"]=st.text_input("Supervisor")
     # ✅ MEASUREMENT TABLE
     st.subheader("Measurement Table")
+    # ✅ NEW: QUALITY TYPE FIELD (OUTSIDE TABLE)
+    d["Quality Type"] = st.selectbox(
+        "Quality Type",
+        ["Premium", "Standard"]
+    )
+
     # ✅ NEW (4 spaces)
     # ✅ NEW MULTIPLE
     mt_imgs = st.file_uploader(
@@ -173,13 +179,9 @@ elif st.session_state.page=="entry":
             "Diag Min": [0.00,0.00,0.00],
             "Diag Max": [0.00,0.00,0.00],
             "Gloss": ["","",""],
-            "Quality": ["Standard","Standard","Standard"]   # ✅ NEW
+              # ✅ NEW
         }),
-        column_config={
-            "Quality": st.column_config.SelectboxColumn(
-                "Quality",
-                options=["Premium", "Standard"]
-            )
+       
         },
         num_rows="dynamic"
     )
@@ -192,7 +194,7 @@ elif st.session_state.page=="entry":
         d[f"DiagMin_{i}"] = row_t["Diag Min"]
         d[f"DiagMax_{i}"] = row_t["Diag Max"]
         d[f"Gloss_{i}"] = row_t["Gloss"]
-        d[f"Quality_{i}"] = row_t["Quality"]
+       
 
     # ✅ AUTO CALC
     def size_to_area(size):
@@ -339,6 +341,7 @@ elif st.session_state.page=="view":
     st.write("Surface:",row["Surface"])
     st.write("Matching:",row["Matching"])
     st.write("Supervisor:",row["Supervisor"])
+    st.write("Quality Type:", row.get("Quality Type"))
     # ✅ NEW (4 spaces)
     if pd.notna(row.get("mt_image")):
 
@@ -371,11 +374,6 @@ elif st.session_state.page=="view":
         ],
         "Gloss": [
             row.get("Gloss_1"), row.get("Gloss_2"), row.get("Gloss_3")
-        ],  
-        "Quality": [    
-            row.get("Quality_1"),
-            row.get("Quality_2"),
-            row.get("Quality_3")
         ]
 
     })
