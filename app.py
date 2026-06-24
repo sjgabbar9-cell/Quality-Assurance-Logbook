@@ -248,8 +248,8 @@ elif st.session_state.page=="entry":
         # ✅ PLC
         st.image("assets/plc.png")
         for i in range(1,7):
-            d[f"plc{tile}_{i}_min"] = st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
-            d[f"plc{tile}_{i}_max"] = st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
+            d[f"lec{tile}_{i}_min"] = st.number_input(f"lec{i} Min", key=f"lec{tile}m{i}")
+            d[f"plc{tile}_{i}_max"] = st.number_input(f"lec{i} Max", key=f"lec{tile}x{i}")
 
         # ✅ PWC
         st.image("assets/pwc.png")
