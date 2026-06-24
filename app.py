@@ -221,55 +221,61 @@ elif st.session_state.page=="entry":
     d["CC Min"]=st.number_input("CC Min")
     d["CC Max"]=st.number_input("CC Max")
 
-    # ✅ PLANARITY
+
+   # ✅ PLANARITY
     st.subheader("Planarity Measurement")
-    # ✅ NEW: dynamic tile counter
+
+    # ✅ Tile count
     if "tile_count" not in st.session_state:
         st.session_state.tile_count = 1
 
-   
+    # ✅ LOOP (MAIN PART — KEEP CLEAN)
+    for tile in range(1, st.session_state.tile_count + 1):
 
-        for tile in range(1, st.session_state.tile_count + 1):
-            tile_imgs = st.file_uploader(
+        st.markdown(f"## Tile {tile}")
+
+        # ✅ IMAGE
+        tile_imgs = st.file_uploader(
             f"Upload Tile {tile} Images",
             type=["png","jpg"],
             key=f"tile{tile}",
             accept_multiple_files=True
         )
-            
-
 
         if tile_imgs:
             d[f"tile_image_{tile}"] = save_images(tile_imgs, f"tile{tile}")
 
-        
-        st.markdown(f"### Tile {tile}")
-
+        # ✅ PLC
         st.image("assets/plc.png")
         for i in range(1,7):
-            d[f"plc{tile}_{i}_min"]=st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
-            d[f"plc{tile}_{i}_max"]=st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
+            d[f"plc{tile}_{i}_min"] = st.number_input(f"PLC{i} Min", key=f"plc{tile}m{i}")
+            d[f"plc{tile}_{i}_max"] = st.number_input(f"PLC{i} Max", key=f"plc{tile}x{i}")
 
+        # ✅ PWC
         st.image("assets/pwc.png")
         for i in range(1,13):
-            d[f"pwc{tile}_{i}_min"]=st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
-            d[f"pwc{tile}_{i}_max"]=st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
+            d[f"pwc{tile}_{i}_min"] = st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
+            d[f"pwc{tile}_{i}_max"] = st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
 
+        # ✅ DIAGONAL
         st.image("assets/diagonal.png")
         for i in range(1,4):
-            d[f"d1{tile}_{i}_min"]=st.number_input(f"D1{i} Min", key=f"d1{tile}m{i}")
-            d[f"d1{tile}_{i}_max"]=st.number_input(f"D1{i} Max", key=f"d1{tile}x{i}")
+            d[f"d1{tile}_{i}_min"] = st.number_input(f"D1{i} Min", key=f"d1{tile}m{i}")
+            d[f"d1{tile}_{i}_max"] = st.number_input(f"D1{i} Max", key=f"d1{tile}x{i}")
 
-            d[f"d2{tile}_{i}_min"]=st.number_input(f"D2{i} Min", key=f"d2{tile}m{i}")
-            d[f"d2{tile}_{i}_max"]=st.number_input(f"D2{i} Max", key=f"d2{tile}x{i}")
-        
+            d[f"d2{tile}_{i}_min"] = st.number_input(f"D2{i} Min", key=f"d2{tile}m{i}")
+            d[f"d2{tile}_{i}_max"] = st.number_input(f"D2{i} Max", key=f"d2{tile}x{i}")
+
         st.divider()
+
+    # ✅ ✅ ✅ ADD BUTTON HERE (AFTER LOOP ONLY ✅)
     if st.button("➕ Add Another Tile"):
         st.session_state.tile_count += 1
 
     if st.session_state.tile_count > 1:
         if st.button("➖ Remove Last Tile"):
             st.session_state.tile_count -= 1
+
 
             
 
