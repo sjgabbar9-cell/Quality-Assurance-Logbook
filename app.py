@@ -172,9 +172,17 @@ elif st.session_state.page=="entry":
             "Size": ["600x600","600x1200","600x600"],
             "Diag Min": [0.00,0.00,0.00],
             "Diag Max": [0.00,0.00,0.00],
-            "Gloss": ["","",""]
+            "Gloss": ["","",""],
+            "Quality": ["Standard","Standard","Standard"]   # ✅ NEW
         }),
+        column_config={
+            "Quality": st.column_config.SelectboxColumn(
+                "Quality",
+                options=["Premium", "Standard"]
+            )
+        },
         num_rows="dynamic"
+    )
     )
     # ✅ NEW: STORE INDIVIDUAL COLUMNS
     for idx, row_t in table.iterrows():
@@ -184,6 +192,7 @@ elif st.session_state.page=="entry":
         d[f"DiagMin_{i}"] = row_t["Diag Min"]
         d[f"DiagMax_{i}"] = row_t["Diag Max"]
         d[f"Gloss_{i}"] = row_t["Gloss"]
+        d[f"Quality_{i}"] = row_t["Quality"]
 
     # ✅ AUTO CALC
     def size_to_area(size):
@@ -362,7 +371,13 @@ elif st.session_state.page=="view":
         ],
         "Gloss": [
             row.get("Gloss_1"), row.get("Gloss_2"), row.get("Gloss_3")
+        ],  
+        "Quality": [    
+            row.get("Quality_1"),
+            row.get("Quality_2"),
+            row.get("Quality_3")
         ]
+
     })
 
     st.dataframe(table, use_container_width=True)
