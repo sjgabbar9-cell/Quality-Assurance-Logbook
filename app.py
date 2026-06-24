@@ -310,7 +310,6 @@ elif st.session_state.page=="qa":
     d["Foot"]=st.text_area("Foot")
     d["Remarks"]=st.text_area("Remarks")
     d["Sizer and Planner Calliberation"]=st.text_area("Sizer and Planner Calliberation")
-    d["Remarks"]=st.text_area("Remarks")
 
     if st.button("Save"):
         save_data(d)
