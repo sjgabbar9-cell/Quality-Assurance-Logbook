@@ -236,16 +236,7 @@ elif st.session_state.page=="entry":
             key=f"tile{tile}",
             accept_multiple_files=True
         )
-            st.divider()
-
-    # ✅ ADD TILE BUTTON AT BOTTOM
-    if st.button("➕ Add Another Tile"):
-        st.session_state.tile_count += 1
-
-    # ✅ OPTIONAL REMOVE
-    if st.session_state.tile_count > 1:
-        if st.button("➖ Remove Last Tile"):
-            st.session_state.tile_count -= 1
+            
 
 
         if tile_imgs:
@@ -271,6 +262,16 @@ elif st.session_state.page=="entry":
 
             d[f"d2{tile}_{i}_min"]=st.number_input(f"D2{i} Min", key=f"d2{tile}m{i}")
             d[f"d2{tile}_{i}_max"]=st.number_input(f"D2{i} Max", key=f"d2{tile}x{i}")
+        
+        st.divider()
+    if st.button("➕ Add Another Tile"):
+        st.session_state.tile_count += 1
+
+    if st.session_state.tile_count > 1:
+        if st.button("➖ Remove Last Tile"):
+            st.session_state.tile_count -= 1
+
+            
 
     if st.button("Next"):
         st.session_state.page="qa"
