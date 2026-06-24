@@ -248,14 +248,14 @@ elif st.session_state.page=="entry":
         # ✅ PLC
         st.image("assets/plc.png")
         for i in range(1,7):
-            d[f"lec{tile}_{i}_min"] = st.number_input(f"lec{i} Min", key=f"lec{tile}m{i}")
-            d[f"plc{tile}_{i}_max"] = st.number_input(f"lec{i} Max", key=f"lec{tile}x{i}")
+            d[f"LEC{tile}_{i}_min"] = st.number_input(f"LEC{i} Min", key=f"LEC{tile}m{i}")
+            d[f"LEC{tile}_{i}_max"] = st.number_input(f"LEC{i} Max", key=f"LEC{tile}x{i}")
 
         # ✅ PWC
         st.image("assets/pwc.png")
-        for i in range(1,13):
-            d[f"pwc{tile}_{i}_min"] = st.number_input(f"PWC{i} Min", key=f"pwc{tile}m{i}")
-            d[f"pwc{tile}_{i}_max"] = st.number_input(f"PWC{i} Max", key=f"pwc{tile}x{i}")
+        for i in range(1,7):
+            d[f"WEC{tile}_{i}_min"] = st.number_input(f"WEC{i} Min", key=f"WEC{tile}m{i}")
+            d[f"WEC{tile}_{i}_max"] = st.number_input(f"WEC{i} Max", key=f"WEC{tile}x{i}")
 
         # ✅ DIAGONAL
         st.image("assets/diagonal.png")
@@ -457,11 +457,11 @@ elif st.session_state.page=="view":
 
         st.image("assets/plc.png")
         for i in range(1,7):
-            st.write("PLC",row.get(f"plc{tile}_{i}_min"),row.get(f"plc{tile}_{i}_max"))
+            st.write("LEC",row.get(f"LEC{tile}_{i}_min"),row.get(f"LEC{tile}_{i}_max"))
 
         st.image("assets/pwc.png")
         for i in range(1,13):
-            st.write("PWC",row.get(f"pwc{tile}_{i}_min"),row.get(f"pwc{tile}_{i}_max"))
+            st.write("WEC",row.get(f"WEC{tile}_{i}_min"),row.get(f"WEC{tile}_{i}_max"))
 
         st.image("assets/diagonal.png")
         for i in range(1,4):
