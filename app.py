@@ -305,9 +305,11 @@ elif st.session_state.page=="qa":
         ["Standard","Uniform","Slightly","Moderately","Distinctly"])
     d["Time Calibration"]=st.text_input("Time Calibration")
     d["Verify Time"]=st.selectbox("Verify",["OK","NOT OK"])
-    d["Cleaning"]=st.text_input("Cleaning")
+    d["Cleaning"]=st.selectbox("Cleaning",["Easy","Cleaning Agent","Not Cleanable"])
     d["Chamfering"]=st.selectbox("Chamfering",["OK","NOT OK"])
     d["Foot"]=st.text_area("Foot")
+    d["Remarks"]=st.text_area("Remarks")
+    d["Sizer and Planner Calliberation"]=st.text_area("Sizer and Planner Calliberation")
     d["Remarks"]=st.text_area("Remarks")
 
     if st.button("Save"):
@@ -492,6 +494,8 @@ elif st.session_state.page=="view":
     st.write("Chamfering:",row["Chamfering"])
     st.write("Foot:",row["Foot"])
     st.write("Remarks:",row["Remarks"])
+    st.write("Sizer and Planner Calliberation:",row["Sizer and Planner Calliberation"])
+    
 
     # ✅ HIERARCHY
     role=st.session_state.user
