@@ -237,9 +237,8 @@ elif st.session_state.page=="entry":
         if st.button("➖ Remove Tile") and st.session_state.tile_count > 1:
             st.session_state.tile_count -= 1
 
-   for tile in range(1, st.session_state.tile_count + 1):
-        # ✅ NEW (8 spaces)
-        tile_imgs = st.file_uploader(
+        for tile in range(1, st.session_state.tile_count + 1):
+            tile_imgs = st.file_uploader(
             f"Upload Tile {tile} Images",
             type=["png","jpg"],
             key=f"tile{tile}",
