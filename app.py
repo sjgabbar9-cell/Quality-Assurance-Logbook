@@ -223,8 +223,21 @@ elif st.session_state.page=="entry":
 
     # ✅ PLANARITY
     st.subheader("Planarity Measurement")
+    # ✅ NEW: dynamic tile counter
+    if "tile_count" not in st.session_state:
+        st.session_state.tile_count = 1
 
-    for tile in range(1,7):
+    col_add, col_remove = st.columns(2)
+
+    with col_add:
+        if st.button("➕ Add Tile"):
+            st.session_state.tile_count += 1
+
+    with col_remove:
+        if st.button("➖ Remove Tile") and st.session_state.tile_count > 1:
+            st.session_state.tile_count -= 1
+
+   for tile in range(1, st.session_state.tile_count + 1):
         # ✅ NEW (8 spaces)
         tile_imgs = st.file_uploader(
             f"Upload Tile {tile} Images",
