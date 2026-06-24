@@ -288,6 +288,9 @@ elif st.session_state.page=="qa":
     d=st.session_state.data
 
     st.header("QA Page")
+    # ✅ RANDOMNESS REFERENCE IMAGE
+    if os.path.exists("assets/Randomness.jpg"):
+        st.image("assets/randomness.jpg", caption="Randomness Reference (V1–V4)")
     # ✅ NEW (4 spaces)
     qa_imgs = st.file_uploader(
         "Upload QA Images",
