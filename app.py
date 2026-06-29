@@ -426,7 +426,7 @@ elif st.session_state.page=="view":
         mime="text/csv"
     )
     # ✅ CALCULATIONS
-    try:
+   try:
         table["Diag Min"] = pd.to_numeric(table["Diag Min"], errors="coerce")
         table["Diag Max"] = pd.to_numeric(table["Diag Max"], errors="coerce")
 
@@ -438,17 +438,17 @@ elif st.session_state.page=="view":
         )
     except:
         pass
-        pass
-     try:
-        table["Thickness Min"] = pd.to_numeric(table["ThicknessMin"], errors="coerce")
-        table["Thickness Max"] = pd.to_numeric(table["ThicknessMax"], errors="coerce")
 
-        st.write("Thickness Min:", table["ThicknessMin"].min())
-        st.write("Thickness Max:", table["ThicknessMax"].max())
-        )
+    # ✅ Thickness calculation (FIXED)
+    try:
+        table["Thickness Min"] = pd.to_numeric(table["Thickness Min"], errors="coerce")
+        table["Thickness Max"] = pd.to_numeric(table["Thickness Max"], errors="coerce")
+
+        st.write("Min Thickness:", table["Thickness Min"].min())
+        st.write("Max Thickness:", table["Thickness Max"].max())
     except:
         pass
-        pass
+
 
     st.write("SS Min:",row.get("SS Min"))
     st.write("SS Max:",row.get("SS Max"))
