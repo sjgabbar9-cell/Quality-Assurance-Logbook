@@ -260,10 +260,10 @@ elif st.session_state.page=="entry":
         # ✅ DIAGONAL
         st.image("assets/diagonal.png")
         for i in range(1,4):
-            d[f"d1{tile}_{i}_min"] = st.number_input(f"D1{i} Min", key=f"d1{tile}m{i}")
+        
             d[f"d1{tile}_{i}_max"] = st.number_input(f"D1{i} Max", key=f"d1{tile}x{i}")
 
-            d[f"d2{tile}_{i}_min"] = st.number_input(f"D2{i} Min", key=f"d2{tile}m{i}")
+           
             d[f"d2{tile}_{i}_max"] = st.number_input(f"D2{i} Max", key=f"d2{tile}x{i}")
 
         st.divider()
@@ -466,8 +466,8 @@ elif st.session_state.page=="view":
 
         st.image("assets/diagonal.png")
         for i in range(1,4):
-            st.write("D1",row.get(f"d1{tile}_{i}_min"),row.get(f"d1{tile}_{i}_max"))
-            st.write("D2",row.get(f"d2{tile}_{i}_min"),row.get(f"d2{tile}_{i}_max"))
+            st.write(row.get(f"d1{tile}_{i}_max"))
+            st.write(row.get(f"d2{tile}_{i}_max"))
 
     # ✅ QA DETAILS
     st.subheader("QA Details")
