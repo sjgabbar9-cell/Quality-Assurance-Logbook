@@ -218,6 +218,8 @@ elif st.session_state.page=="entry":
         st.write("Min Diagonal:", table["Diag Min"].min())
         st.write("Max Diagonal:", table["Diag Max"].max())
         st.write("Diagonal Variation:", table["Diag Max"].max()-table["Diag Min"].min())
+        st.write("Min Thickness:", table["ThicknessMin"].min())
+        st.write("Max Thickness:", table["ThicknessMax"].max())
 
     d["SS Min"]=st.number_input("SS Min")
     d["SS Max"]=st.number_input("SS Max")
@@ -433,6 +435,16 @@ elif st.session_state.page=="view":
         st.write(
             "Diagonal Variation:",
             table["Diag Max"].max() - table["Diag Min"].min()
+        )
+    except:
+        pass
+        pass
+     try:
+        table["Thickness Min"] = pd.to_numeric(table["ThicknessMin"], errors="coerce")
+        table["Thickness Max"] = pd.to_numeric(table["ThicknessMax"], errors="coerce")
+
+        st.write("Thickness Min:", table["ThicknessMin"].min())
+        st.write("Thickness Max:", table["ThicknessMax"].max())
         )
     except:
         pass
