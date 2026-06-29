@@ -179,6 +179,8 @@ elif st.session_state.page=="entry":
             "Diag Min": [0.00,0.00,0.00],
             "Diag Max": [0.00,0.00,0.00],
             "Gloss": ["","",""],
+            "ThicknessMin":[0.00,0.00,0.00],
+            "ThicknessMax":[0.00,0.00,0.00],
               # ✅ NEW
         }),
        
