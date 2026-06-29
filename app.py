@@ -426,7 +426,7 @@ elif st.session_state.page=="view":
         mime="text/csv"
     )
     # ✅ CALCULATIONS
-   try:
+    try:
         table["Diag Min"] = pd.to_numeric(table["Diag Min"], errors="coerce")
         table["Diag Max"] = pd.to_numeric(table["Diag Max"], errors="coerce")
 
