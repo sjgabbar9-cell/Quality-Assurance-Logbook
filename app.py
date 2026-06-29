@@ -404,6 +404,7 @@ elif st.session_state.page=="view":
         ]
         "Thickness Min": [
             row.get("ThicknessMin_1"), row.get("ThicknessMin_2"), row.get("ThicknessMin_3")
+        ]
         "Thickness Max": [
             row.get("ThicknessMax_1"), row.get("ThicknessMax_2"), row.get("ThicknessMax_3")
         ]
