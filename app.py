@@ -194,7 +194,8 @@ elif st.session_state.page=="entry":
         d[f"DiagMin_{i}"] = row_t["Diag Min"]
         d[f"DiagMax_{i}"] = row_t["Diag Max"]
         d[f"Gloss_{i}"] = row_t["Gloss"]
-       
+        d[f"ThicknessMin_{i}"] = row_t["ThicknessMin"]
+        d[f"ThicknessMax_{i}"] = row_t["ThicknessMax"]
 
     # ✅ AUTO CALC
     def size_to_area(size):
@@ -400,6 +401,11 @@ elif st.session_state.page=="view":
         ],
         "Gloss": [
             row.get("Gloss_1"), row.get("Gloss_2"), row.get("Gloss_3")
+        ]
+        "Thickness Min": [
+            row.get("ThicknessMin_1"), row.get("ThicknessMin_2"), row.get("ThicknessMin_3")
+        "Thickness Max": [
+            row.get("ThicknessMax_1"), row.get("ThicknessMax_2"), row.get("ThicknessMax_3")
         ]
 
     })
